@@ -52,7 +52,7 @@ func (n *nonce) initialize(prefix [16]byte, c uint64) {
 func newRandomNonce() nonce {
 	var n nonce
 	if _, err := rand.Read(n.nonce[0:24]); err != nil {
-		Error.Println(err)
+		//Error.Println(err)
 	}
 	return n
 }
@@ -62,7 +62,7 @@ func newRandomNonce() nonce {
 func newNonce() nonce {
 	var n nonce
 	if _, err := rand.Read(n.nonce[0:16]); err != nil {
-		Error.Println(err)
+		//Error.Println(err)
 	}
 	n.setCounter(1)
 	return n

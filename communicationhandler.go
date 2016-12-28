@@ -48,12 +48,12 @@ func (sc *SessionContext) ReceiveMessages() (<-chan ReceivedMsg, error) {
 	}
 
 	//handshake
-	Info.Println("Initiating Handshake")
+	//Info.Println("Initiating Handshake")
 	sc.dispatchClientHello(conn)
 	sc.handleServerHello(receiveHelper(conn, 80))
 	sc.dispatchAuthMsg(conn)
 	sc.handleHandshakeAck(receiveHelper(conn, 32))
-	Info.Println("Handshake Completed")
+	//Info.Println("Handshake Completed")
 
 	//receive messages
 	msgchan := make(chan ReceivedMsg)
@@ -86,9 +86,9 @@ func (sc *SessionContext) ReceiveMessages() (<-chan ReceivedMsg, error) {
 			case ackPacket:
 				fmt.Printf("Got Ack: \n%v\n", pkt)
 			case connEstPacket:
-				Info.Printf("Got Message: %#v\n", pkt)
+				//Info.Printf("Got Message: %#v\n", pkt)
 			default:
-				Warning.Printf("ReceiveMessages: unhandled packet type: %T", pkt)
+				//Warning.Printf("ReceiveMessages: unhandled packet type: %T", pkt)
 				return
 			}
 			// TODO: Implement the echo ping pong
@@ -115,12 +115,12 @@ func (sc *SessionContext) SendMessage(m Message) (err error) {
 	defer conn.Close()
 
 	//handshake
-	Info.Println("Initiating Handshake")
+	//Info.Println("Initiating Handshake")
 	sc.dispatchClientHello(conn)
 	sc.handleServerHello(receiveHelper(conn, 80))
 	sc.dispatchAuthMsg(conn)
 	sc.handleHandshakeAck(receiveHelper(conn, 32))
-	Info.Println("Handshake Completed")
+	//Info.Println("Handshake Completed")
 
 	// first we have to receive all messages in queue and wait for the connectionEstablished packet
 recv:
@@ -132,7 +132,7 @@ recv:
 
 		switch pktIntf.(type) {
 		case connEstPacket:
-			Info.Println("Connection established.")
+			//Info.Println("Connection established.")
 			break recv
 		}
 	}
