@@ -7,8 +7,8 @@ import (
 
 	"errors"
 
-	"gitlab.sva.tuhh.de/safs1103/o3rest/apiclient_pkg"
-	"gitlab.sva.tuhh.de/safs1103/o3rest/models_pkg"
+	"github.com/o3ma/o3rest/apiclient_pkg"
+	"github.com/o3ma/o3rest/models_pkg"
 	"golang.org/x/crypto/nacl/box"
 )
 
