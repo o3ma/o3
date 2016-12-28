@@ -27,6 +27,8 @@ const (
 
 	DELIVERYRECEIPT msgType = 0x80 // DELIVERYRECEIPT is the msgType used for delivery receipts sent by the threema servers
 
+	TYPINGNOTIFICATION msgType = 0x90
+
 	//GROUPSETIMAGEMESSAGE msgType = 76
 )
 
@@ -105,6 +107,10 @@ func (tm TextMessage) String() string {
 
 func (tm TextMessage) Serialize() []byte {
 	return serializeTextMsg(tm).Bytes()
+}
+
+func (tn TypingNotificationMessage) Serialize() []byte {
+	return serializeTypingNotification(tn).Bytes()
 }
 
 // newTextMessage returns a TextMessage ready to be encrypted
@@ -255,6 +261,18 @@ func (am *AudioMessage) SetAudioData(filename string, sc SessionContext) error {
 
 func (am AudioMessage) Serialize() []byte {
 	return serializeAudioMsg(am).Bytes()
+}
+
+// TYPING NOTIFICATIONS
+////////////////////////////////////////////////////////////////
+
+type TypingNotificationMessage struct {
+	messageHeader
+	typingNotificationBody
+}
+
+type typingNotificationBody struct {
+	OnOff byte
 }
 
 // GROUP MESSAGES

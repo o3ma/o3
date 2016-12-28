@@ -175,6 +175,10 @@ func (sc *SessionContext) handleMessagePacket(mp messagePacket) (Message, error)
 		message = DeliveryReceiptMessage{
 			messageHeader:              newMsgHdrFromPkt(mp),
 			DeliveryReceiptMessageBody: parseDeliveryReceipt(buf)}
+	case TYPINGNOTIFICATION:
+		message = TypingNotificationMessage{
+			messageHeader:          newMsgHdrFromPkt(mp),
+			typingNotificationBody: parseTypingNotification(buf)}
 	default:
 		fmt.Printf("\n%2x\n", buf)
 		fmt.Printf("\n%s\n", buf)

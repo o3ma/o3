@@ -203,6 +203,15 @@ func serializeAuthPkt(ap authPacket) *bytes.Buffer {
 	return buf
 }
 
+func serializeTypingNotification(tn TypingNotificationMessage) *bytes.Buffer {
+
+	buf := new(bytes.Buffer)
+
+	serializeByte(buf, tn.OnOff)
+
+	return buf
+}
+
 func serializerPanicHandler(context string, i interface{}) error {
 	if _, ok := i.(string); ok {
 		return fmt.Errorf("%s: error occured serializing %s", context, i)
@@ -263,6 +272,14 @@ func serializePktType(buf *bytes.Buffer, pktT pktType) *bytes.Buffer {
 
 func serializeMsgType(buf *bytes.Buffer, msgT msgType) *bytes.Buffer {
 	return serializeUint8(uint8(msgT), buf)
+}
+
+func serializeByte(buf *bytes.Buffer, b byte) *bytes.Buffer {
+	err := buf.WriteByte(b)
+	if err != nil {
+		panic(err)
+	}
+	return buf
 }
 
 func serializeMsgFlags(buf *bytes.Buffer, flags msgFlags) *bytes.Buffer {

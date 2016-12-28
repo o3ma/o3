@@ -211,6 +211,11 @@ func parseImageMessage(buf *bytes.Buffer) imageMessageBody {
 	return im
 }
 
+func parseTypingNotification(buf *bytes.Buffer) (tn typingNotificationBody) {
+	tn.OnOff = parseByte(buf)
+	return
+}
+
 func parseAudioMessage(buf *bytes.Buffer) audioMessageBody {
 	// Strip padding
 	// TODO: this should be a helper function
@@ -315,6 +320,14 @@ func parse144bytes(buf *bytes.Buffer) (bytes [144]byte) {
 	bytebuf := parsenbytes(buf, 144)
 	copy(bytes[:], bytebuf)
 	return
+}
+
+func parseByte(buf *bytes.Buffer) byte {
+	b, err := buf.ReadByte()
+	if err != nil {
+		panic(err)
+	}
+	return b
 }
 
 //helper function: not to be called directly
