@@ -173,7 +173,7 @@ func (id ThreemaID) SaveToFile(filename string, password []byte) error {
 	if err != nil {
 		return err
 	}
-	return ioutil.WriteFile(filename, []byte(idstr), 0600)
+	return ioutil.WriteFile(filename, []byte(idstr+"\n"), 0600)
 }
 
 // NewThreemaID creates a ThreemaID from a given id strnig and a 256-bit private key
