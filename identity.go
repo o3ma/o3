@@ -62,7 +62,7 @@ func (thid ThreemaID) GetPubKey() *[32]byte {
 func ReadPassword() ([]byte, error) {
 	fmt.Printf("Enter identity password: ")
 
-	return gopass.GetPasswd()
+	return gopass.GetPasswd(), nil
 }
 
 func decryptID(identity string, password []byte) ([]byte, []byte, error) {
