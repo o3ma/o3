@@ -124,6 +124,9 @@ func (tr ThreemaRest) setFeatureLevel(thid ThreemaID, featurelevel int) (succes 
 	}
 
 	result, err := tr.client.IdentitySetFeaturelevelStage2(&response)
+	if err != nil {
+		return false
+	}
 
 	return *result.Success
 }
