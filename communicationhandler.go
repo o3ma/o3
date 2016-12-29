@@ -32,9 +32,9 @@ type ReceivedMsg struct {
 	Err error
 }
 
-// ReceiveMessages receives all enqueued Messages and writes the results
+// Run receives all enqueued Messages and writes the results
 // to the channel passed as argument
-func (sc *SessionContext) ReceiveMessages() (chan<- Message, <-chan ReceivedMsg, error) {
+func (sc *SessionContext) Run() (chan<- Message, <-chan ReceivedMsg, error) {
 	defer func() {
 		if r := recover(); r != nil {
 			// TODO: Return the error
