@@ -1,11 +1,11 @@
-/*
- * Functions to prepare and send packets. All preparation required to transmit a
- * packet takes place in the packet's respective dispatcher function. Functions
- * from packetserializer are used to convert from struct to byte buffer form that
- * can then be transmitted on the wire. Errors from packetserializer bubble up here
- * in the form of panics that have to be passed on to communicationhandler for
- * conversion to go errors.
- */
+//
+// Package o3 functions to prepare and send packets. All preparation required to transmit a
+// packet takes place in the packet's respective dispatcher function. Functions
+// from packetserializer are used to convert from struct to byte buffer form that
+// can then be transmitted on the wire. Errors from packetserializer bubble up here
+// in the form of panics that have to be passed on to communicationhandler for
+// conversion to go errors.
+//
 package o3
 
 import (
@@ -19,9 +19,9 @@ import (
 
 func dispatcherPanicHandler(context string, i interface{}) error {
 	if _, ok := i.(string); ok {
-		return fmt.Errorf("%s: error occured dispatching %s", context, i)
+		return fmt.Errorf("%s: error occurred dispatching %s", context, i)
 	}
-	return fmt.Errorf("%s: unknown dispatch error occured: %#v", context, i)
+	return fmt.Errorf("%s: unknown dispatch error occurred: %#v", context, i)
 }
 
 func writeHelper(wr io.Writer, buf *bytes.Buffer) {

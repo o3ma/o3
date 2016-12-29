@@ -12,7 +12,7 @@ import (
 	"golang.org/x/crypto/nacl/box"
 )
 
-// ThreemaRest provides convinient wrappers for task that require the use of Threemas REST API
+// ThreemaRest provides convenient wrappers for task that require the use of Threemas REST API
 type ThreemaRest struct {
 	client apiclient_pkg.APICLIENT_IMPL
 }
@@ -27,7 +27,7 @@ func (tr ThreemaRest) CreateIdentity() (ThreemaID, error) {
 
 	pubkey := base64.StdEncoding.EncodeToString(publicKey[:])
 
-	// The nonce is harcoded in threema
+	// The nonce is hardcoded in threema
 	nonce := [24]byte{0x63, 0x72, 0x65, 0x61, 0x74, 0x65, 0x49, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x74, 0x79, 0x20, 0x72, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x2e}
 
 	// Request token and tokenRespKeyPub
@@ -73,12 +73,12 @@ func (tr ThreemaRest) CreateIdentity() (ThreemaID, error) {
 	fmt.Printf("PublicKey: %x\n", *publicKey)
 
 	newID := ThreemaID{
-		ID:   NewIdString(*finalResult.Identity),
+		ID:   NewIDString(*finalResult.Identity),
 		Nick: NewPubNick(*finalResult.Identity),
 		LSK:  *privateKey}
 
 	if !tr.setFeatureLevel(newID, 4) {
-		return ThreemaID{}, errors.New("Failed to set feature level!")
+		return ThreemaID{}, errors.New("failed to set feature level")
 	}
 
 	return newID, nil
@@ -88,7 +88,7 @@ func (tr ThreemaRest) CreateIdentity() (ThreemaID, error) {
 func (tr ThreemaRest) setFeatureLevel(thid ThreemaID, featurelevel int) (succes bool) {
 	featureLevelFloat := float64(featurelevel)
 
-	// The nonce is harcoded in threema
+	// The nonce is hardcoded in threema
 	nonce := [24]byte{0x63, 0x72, 0x65, 0x61, 0x74, 0x65, 0x49, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x74, 0x79, 0x20, 0x72, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x2e}
 	nonceB64 := base64.StdEncoding.EncodeToString(nonce[:])
 
@@ -124,12 +124,15 @@ func (tr ThreemaRest) setFeatureLevel(thid ThreemaID, featurelevel int) (succes 
 	}
 
 	result, err := tr.client.IdentitySetFeaturelevelStage2(&response)
+	if err != nil {
+		return false
+	}
 
 	return *result.Success
 }
 
 // GetContactByID returns a ThreemaContact containing the public key as queried from the Threema servers
-func (tr ThreemaRest) GetContactByID(thIDString IdString) (ThreemaContact, error) {
+func (tr ThreemaRest) GetContactByID(thIDString IDString) (ThreemaContact, error) {
 	response, err := tr.client.IdentityById(thIDString.String())
 	if err != nil {
 		return ThreemaContact{}, err

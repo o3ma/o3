@@ -214,9 +214,9 @@ func serializeTypingNotification(tn TypingNotificationMessage) *bytes.Buffer {
 
 func serializerPanicHandler(context string, i interface{}) error {
 	if _, ok := i.(string); ok {
-		return fmt.Errorf("%s: error occured serializing %s", context, i)
+		return fmt.Errorf("%s: error occurred serializing %s", context, i)
 	}
-	return fmt.Errorf("%s: unknown serializing error occured: %#v", context, i)
+	return fmt.Errorf("%s: unknown serializing error occurred: %#v", context, i)
 }
 
 func serializeHelper(buf *bytes.Buffer, i interface{}) *bytes.Buffer {
@@ -315,7 +315,7 @@ func serializeNoncePrefix(buf *bytes.Buffer, np [16]byte) *bytes.Buffer {
 	return contextualSerializeHelper("nonce prefix", buf, np)
 }
 
-func serializeIDString(buf *bytes.Buffer, is IdString) *bytes.Buffer {
+func serializeIDString(buf *bytes.Buffer, is IDString) *bytes.Buffer {
 	return contextualSerializeHelper("id string", buf, is)
 }
 

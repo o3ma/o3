@@ -17,27 +17,32 @@ import (
 	"golang.org/x/crypto/salsa20"
 )
 
+//PubNick is the representation of Threema's nickname field users can set
 type PubNick [32]byte
 
 func (pn PubNick) String() string {
 	return string(pn[:])
 }
 
+//NewPubNick creates a new PubNick from the input string.
+//Will only take the first 32 bytes of input
 func NewPubNick(pb string) PubNick {
 	var buf PubNick
 	copy(buf[:], []byte(pb))
 	return buf
 }
 
-// IdString is a Threema ID string
-type IdString [8]byte
+//IDString is a Threema ID string consisting of capital letters and digits.
+type IDString [8]byte
 
-func (is IdString) String() string {
+func (is IDString) String() string {
 	return string(is[:])
 }
 
-func NewIdString(ids string) IdString {
-	var buf IdString
+//NewIDString creates an IDString from the input string.
+//There is no input verification. Callers have to ensure that ids complies with Threema's ID rules.
+func NewIDString(ids string) IDString {
+	var buf IDString
 	copy(buf[:], []byte(ids))
 	return buf
 }
@@ -45,7 +50,7 @@ func NewIdString(ids string) IdString {
 // ThreemaID is the core ID type. It contains the 8-byte ID, its corresponding 32-byte 256-bit private key,
 // and a list of known Contacts.
 type ThreemaID struct {
-	ID       IdString
+	ID       IDString
 	Nick     PubNick
 	LSK      [32]byte
 	Contacts AddressBook
@@ -151,7 +156,7 @@ func LoadIDFromFile(filename string, password []byte) (ThreemaID, error) {
 	return ParseIDBackupString(string(buf), password)
 }
 
-// ParseIDString parses the base32-encoded encrypted ID string contained in a threema backup.
+// ParseIDBackupString parses the base32-encoded encrypted ID string contained in a threema backup.
 func ParseIDBackupString(idstr string, password []byte) (ThreemaID, error) {
 	threemaID := ThreemaID{}
 	id, lsk, err := decryptID(idstr, password)
@@ -168,8 +173,8 @@ func ParseIDBackupString(idstr string, password []byte) (ThreemaID, error) {
 // identity export format so the backup can be re-imported both here and in the app. Note that the result
 // will always look different even if using the same password and ID because the salt is re-generated
 // with each backup.
-func (id ThreemaID) SaveToFile(filename string, password []byte) error {
-	idstr, err := encryptID(id.ID[:], id.LSK[:], password)
+func (thid ThreemaID) SaveToFile(filename string, password []byte) error {
+	idstr, err := encryptID(thid.ID[:], thid.LSK[:], password)
 	if err != nil {
 		return err
 	}
@@ -191,6 +196,6 @@ func NewThreemaID(id string, lsk [32]byte, contacts AddressBook) (ThreemaID, err
 	return tid, nil
 }
 
-func (id ThreemaID) String() string {
-	return string(id.ID[:])
+func (thid ThreemaID) String() string {
+	return string(thid.ID[:])
 }

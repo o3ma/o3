@@ -59,7 +59,7 @@ func (a *AddressBook) Import(contacts [][]string) error {
 		contact := ThreemaContact{Name: c[1]}
 		n := copy(contact.ID[:], id[:])
 		if n != 8 {
-			return fmt.Errorf("Line %d: invalid ID length: %d\n", l, n)
+			return fmt.Errorf("line %d: invalid ID length: %d", l, n)
 		}
 		lpk, err := hex.DecodeString(c[2])
 		if err != nil {
@@ -67,7 +67,7 @@ func (a *AddressBook) Import(contacts [][]string) error {
 		}
 		n = copy(contact.LPK[0:32], lpk[0:32])
 		if n != 32 {
-			return fmt.Errorf("Line %d: invalid pubKey length: %d\n", l, n)
+			return fmt.Errorf("line %d: invalid pubKey length: %d", l, n)
 		}
 		a.contacts[id] = contact
 	}

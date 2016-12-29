@@ -2,8 +2,8 @@ package o3
 
 // Group represents a Threema chat group
 type Group struct {
-	CreatorID IdString
+	CreatorID IDString
 	GroupID   [8]byte
 	Name      string
-	Members   []IdString
+	Members   []IDString
 }

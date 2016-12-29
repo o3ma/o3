@@ -1,8 +1,7 @@
-/*Functions to convert packets from byte buffers to go structs.
- *These functions are called from packethandler only and their
- *task is only conversion. Errors are bubbled up the chain as
- *panics and will be converted to go errors further up the chain.
- */
+// Package o3 functions to convert packets from byte buffers to go structs.
+// These functions are called from packethandler only and their
+// task is only conversion. Errors are bubbled up the chain as
+// panics and will be converted to go errors further up the chain.
 package o3
 
 import (
@@ -15,8 +14,8 @@ import (
 func parseMsgPkt(buf *bytes.Buffer) (mp messagePacket) {
 
 	mp.PktType = parsePktType(buf)
-	mp.Sender = parseIdString(buf)
-	mp.Recipient = parseIdString(buf)
+	mp.Sender = parseIDString(buf)
+	mp.Recipient = parseIDString(buf)
 	mp.ID = parseUint64(buf)
 	mp.Time = parseTime(buf)
 	mp.PubNick = parsePubNick(buf)
@@ -29,15 +28,15 @@ func parseMsgPkt(buf *bytes.Buffer) (mp messagePacket) {
 func parseAckPkt(buf *bytes.Buffer) (ap ackPacket) {
 
 	ap.PktType = parsePktType(buf)
-	ap.SenderID = parseIdString(buf)
+	ap.SenderID = parseIDString(buf)
 	ap.MsgID = parseUint64(buf)
 
 	return
 }
 
-func parseDeliveryReceipt(buf *bytes.Buffer) DeliveryReceiptMessageBody {
+func parseDeliveryReceipt(buf *bytes.Buffer) deliveryReceiptMessageBody {
 	parsenbytes(buf, 1)
-	dm := DeliveryReceiptMessageBody{
+	dm := deliveryReceiptMessageBody{
 		MsgID: parseUint64(buf)}
 	return dm
 }
@@ -140,14 +139,14 @@ func parsePktType(buf *bytes.Buffer) pktType {
 	return pktType(pktT)
 }
 
-func parseIdString(buf *bytes.Buffer) IdString {
+func parseIDString(buf *bytes.Buffer) IDString {
 	var id [8]byte
 	err := binary.Read(buf, binary.LittleEndian, &id)
 	//TODO check valild characters
 	if err != nil {
 		panic("Threema ID")
 	}
-	return IdString(id)
+	return IDString(id)
 }
 
 func parsePubNick(buf *bytes.Buffer) PubNick {
@@ -247,7 +246,7 @@ func parseGroupImageMessage(buf *bytes.Buffer) groupImageMessageBody {
 
 func parseGroupMessageHeader(buf *bytes.Buffer) groupMessageHeader {
 	return groupMessageHeader{
-		creatorID: parseIdString(buf),
+		creatorID: parseIDString(buf),
 		groupID:   parseGroupID(buf),
 	}
 }
@@ -273,10 +272,10 @@ func parseGroupManageSetMembersMessage(buf *bytes.Buffer) groupManageSetMembersM
 
 	memberCount := buf.Len() / 8
 	gmm := groupManageSetMembersMessageBody{
-		groupMembers: make([]IdString, memberCount)}
+		groupMembers: make([]IDString, memberCount)}
 
 	for i := 0; i < memberCount; i++ {
-		gmm.groupMembers[i] = parseIdString(buf)
+		gmm.groupMembers[i] = parseIDString(buf)
 	}
 
 	return gmm
@@ -335,7 +334,7 @@ func parsenbytes(buf *bytes.Buffer, size int) []byte {
 	bytes := make([]byte, size)
 	n, err := buf.Read(bytes)
 	if n != size || err != nil {
-		panic(fmt.Sprintf("%i bytes of data", size))
+		panic(fmt.Sprintf("%d bytes of data", size))
 	}
 	return bytes
 }
