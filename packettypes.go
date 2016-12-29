@@ -15,6 +15,7 @@ const (
 	CLIENTACK pktType = 0x82
 	// CONNESTABLISHED is the packet type of a pkt send by ther server when all MSGs have been delivered
 	CONNESTABLISHED pktType = 0xd0
+
 	// MSGHEADERLENGHT is the length of a ThreemaMessageHeader
 	MSGHEADERLENGTH uint8 = 64
 )
