@@ -364,7 +364,7 @@ func (im *GroupImageMessage) SetImageData(filename string) error {
 
 	im.Key, im.ServerID, im.Size, im.BlobID, err = encryptAndUploadSym(plainImage)
 
-	return nil
+	return err
 }
 
 func newGroupMemberLeftMessages(sc *SessionContext, group Group) []GroupMemberLeftMessage {
