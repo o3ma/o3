@@ -10,7 +10,6 @@ package o3
 
 import (
 	"bytes"
-	"crypto/rand"
 	"encoding/binary"
 	"fmt"
 	"io"
@@ -42,14 +41,6 @@ func (sc *SessionContext) dispatchClientHello(wr io.Writer) {
 		}
 	}()
 	var ch clientHelloPacket
-
-	sc.clientNonce = newNonce()
-	pk, sk, err := box.GenerateKey(rand.Reader)
-	if err != nil {
-		panic(err)
-	}
-	copy(sc.clientSPK[:], (*pk)[:])
-	copy(sc.clientSSK[:], (*sk)[:])
 
 	ch.ClientSPK = sc.clientSPK
 	ch.NoncePrefix = sc.clientNonce.prefix()
