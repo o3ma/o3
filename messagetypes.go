@@ -62,7 +62,7 @@ type msgFlags struct {
 	GroupMessage                   bool
 }
 
-// NewMsgID returns a randomly genrated message ID (not cryptographically secure!)
+// NewMsgID returns a randomly generated message ID (not cryptographically secure!)
 // TODO: Why mrand?
 func NewMsgID() uint64 {
 	mrand.Seed(int64(time.Now().Nanosecond()))
@@ -70,7 +70,7 @@ func NewMsgID() uint64 {
 	return msgID
 }
 
-// NewGrpID returns a randomly genrated group ID (not cryptographically secure!)
+// NewGrpID returns a randomly generated group ID (not cryptographically secure!)
 // TODO: Why mrand?
 func NewGrpID() [8]byte {
 	mrand.Seed(int64(time.Now().Nanosecond()))
