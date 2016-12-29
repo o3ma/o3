@@ -13,10 +13,10 @@ const (
 	SERVERACK pktType = 0x81
 	// CLIENTACK is the packet type of a client ack for a message delivered by the server
 	CLIENTACK pktType = 0x82
-	// CONNESTABLISHED is the packet type of a pkt send by ther server when all MSGs have been delivered
+	// CONNESTABLISHED is the packet type of a pkt send by the server when all MSGs have been delivered
 	CONNESTABLISHED pktType = 0xd0
 
-	// MSGHEADERLENGHT is the length of a ThreemaMessageHeader
+	// MSGHEADERLENGTH is the length of a ThreemaMessageHeader
 	MSGHEADERLENGTH uint8 = 64
 )
 

@@ -18,9 +18,9 @@ import (
 
 func handlerPanicHandler(context string, i interface{}) error {
 	if _, ok := i.(string); ok {
-		return fmt.Errorf("%s: error occured handling %s", context, i)
+		return fmt.Errorf("%s: error occurred handling %s", context, i)
 	}
-	return fmt.Errorf("%s: unknown handling error occured: %#v", context, i)
+	return fmt.Errorf("%s: unknown handling error occurred: %#v", context, i)
 }
 
 //not needed at the client
