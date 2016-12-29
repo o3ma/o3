@@ -20,9 +20,9 @@ import (
 
 func dispatcherPanicHandler(context string, i interface{}) error {
 	if _, ok := i.(string); ok {
-		return fmt.Errorf("%s: error occured dispatching %s", context, i)
+		return fmt.Errorf("%s: error occurred dispatching %s", context, i)
 	}
-	return fmt.Errorf("%s: unknown dispatch error occured: %#v", context, i)
+	return fmt.Errorf("%s: unknown dispatch error occurred: %#v", context, i)
 }
 
 func writeHelper(wr io.Writer, buf *bytes.Buffer) {
