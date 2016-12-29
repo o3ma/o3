@@ -2,4 +2,4 @@
 
 # o3
 
-Re-implementation of the [Threema](https://threema.ch) protocol.
+Re-implementation of the [Threema](https://threema.ch) protocol. GoDoc [here](https://godoc.org/github.com/o3ma/o3), better documentation will follow.
