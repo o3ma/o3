@@ -34,7 +34,7 @@ type ReceivedMsg struct {
 
 // ReceiveMessages receives all enqueued Messages and writes the results
 // to the channel passed as argument
-func (sc *SessionContext) ReceiveMessages() (<-chan ReceivedMsg, error) {
+func (sc *SessionContext) ReceiveMessages() (chan<- Message, <-chan ReceivedMsg, error) {
 	defer func() {
 		if r := recover(); r != nil {
 			// TODO: Return the error
@@ -42,121 +42,96 @@ func (sc *SessionContext) ReceiveMessages() (<-chan ReceivedMsg, error) {
 		}
 	}()
 
-	conn, err := net.Dial("tcp", "g-33.0.threema.ch:5222")
+	var err error
+	sc.connection, err = net.Dial("tcp", "g-33.0.threema.ch:5222")
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	//handshake
 	//Info.Println("Initiating Handshake")
-	sc.dispatchClientHello(conn)
-	sc.handleServerHello(receiveHelper(conn, 80))
-	sc.dispatchAuthMsg(conn)
-	sc.handleHandshakeAck(receiveHelper(conn, 32))
+	sc.dispatchClientHello(sc.connection)
+	sc.handleServerHello(receiveHelper(sc.connection, 80))
+	sc.dispatchAuthMsg(sc.connection)
+	sc.handleHandshakeAck(receiveHelper(sc.connection, 32))
 	//Info.Println("Handshake Completed")
 
-	//receive messages
-	msgchan := make(chan ReceivedMsg)
-	go func() {
-	recv:
-		for {
-			pktIntf, err := sc.receivePacket(conn)
-			if err != nil {
-				if err == io.EOF {
-					break recv
-				}
-				Error.Printf("receivePacket failed: %s", err)
-				msgchan <- ReceivedMsg{
-					Msg: nil,
-					Err: err,
-				}
-				// TODO: break/return on specific errors - i.e. connection reset
-				continue
-			}
+	sc.sendMsgChan = make(chan Message)
+	sc.receiveMsgChan = make(chan ReceivedMsg)
 
-			switch pkt := pktIntf.(type) {
-			case messagePacket:
-				// Acknowledge message packet
-				sc.dispatchAckMsg(conn, pkt)
+	// receiveLoop calls sendLoop when ready
+	go sc.receiveLoop()
 
-				// Get the actual message
-				var rmsg ReceivedMsg
-				rmsg.Msg, rmsg.Err = sc.handleMessagePacket(pkt)
-				msgchan <- rmsg
-			case ackPacket:
-				fmt.Printf("Got Ack: \n%v\n", pkt)
-			case connEstPacket:
-				//Info.Printf("Got Message: %#v\n", pkt)
-			default:
-				//Warning.Printf("ReceiveMessages: unhandled packet type: %T", pkt)
-				return
-			}
-			// TODO: Implement the echo ping pong
-		}
-		close(msgchan)
-		conn.Close()
-	}()
-
-	return msgchan, nil
+	return sc.sendMsgChan, sc.receiveMsgChan, nil
 }
 
-// SendMessage sends a "Message"
-func (sc *SessionContext) SendMessage(m Message) (err error) {
-	defer func() {
-		if r := recover(); r != nil {
-			err = handlerPanicHandler("SendMessage: ", r)
-		}
-	}()
-
-	conn, err := net.Dial("tcp", "g-33.0.threema.ch:5222")
-	if err != nil {
-		return err
-	}
-	defer conn.Close()
-
-	//handshake
-	//Info.Println("Initiating Handshake")
-	sc.dispatchClientHello(conn)
-	sc.handleServerHello(receiveHelper(conn, 80))
-	sc.dispatchAuthMsg(conn)
-	sc.handleHandshakeAck(receiveHelper(conn, 32))
-	//Info.Println("Handshake Completed")
-
-	// first we have to receive all messages in queue and wait for the connectionEstablished packet
-recv:
+func (sc *SessionContext) receiveLoop() {
+	defer sc.connection.Close()
+	//recv:
 	for {
-		pktIntf, err := sc.receivePacket(conn)
+		pktIntf, err := sc.receivePacket(sc.connection)
 		if err != nil {
-			return err
-		}
+			if err == io.EOF {
+				//break recv
+				return
+			}
+			//Error.Printf("receivePacket failed: %s", err)
+			sc.receiveMsgChan <- ReceivedMsg{
+				Msg: nil,
+				Err: err,
+			}
 
-		switch pktIntf.(type) {
-		case connEstPacket:
-			//Info.Println("Connection established.")
-			break recv
+			// TODO: break/return on specific errors - i.e. connection reset
+			continue
 		}
+		switch pkt := pktIntf.(type) {
+		case messagePacket:
+			// Acknowledge message packet
+			sc.dispatchAckMsg(sc.connection, pkt)
+
+			// Get the actual message
+			var rmsg ReceivedMsg
+			rmsg.Msg, rmsg.Err = sc.handleMessagePacket(pkt)
+			sc.receiveMsgChan <- rmsg
+		case ackPacket:
+			// ok cool. nothing to do.
+		case connEstPacket:
+			//Info.Printf("Got Message: %#v\n", pkt)
+			go sc.sendLoop()
+		default:
+			fmt.Printf("ReceiveMessages: unhandled packet type: %T", pkt)
+			return
+		}
+		// TODO: Implement the echo ping pong
 	}
 
-	sc.dispatchMessage(conn, m)
+}
 
-	return nil
+func (sc *SessionContext) sendLoop() {
+	for msg := range sc.sendMsgChan {
+		sc.dispatchMessage(sc.connection, msg)
+	}
 }
 
 // SendTextMessage sends a Text Message to the specified ID
 // Enqueued messages will be received, not acknowledged and discarded
-func (sc *SessionContext) SendTextMessage(recipient string, text string) (err error) {
+func (sc *SessionContext) SendTextMessage(recipient string, text string, sendMsgChan chan<- Message) error {
 	// build a message
 	tm, err := newTextMessage(sc, recipient, text)
 
+	// TODO: error handling
 	if err != nil {
 		return err
 	}
-	return sc.SendMessage(tm)
+
+	sendMsgChan <- tm
+
+	return nil
 }
 
 // SendImageMessage sends a Image Message to the specified ID
 // Enqueued messages will be received, not acknowledged and discarded
-func (sc *SessionContext) SendImageMessage(recipient string, filename string) (err error) {
+func (sc *SessionContext) SendImageMessage(recipient string, filename string, sendMsgChan chan<- Message) error {
 	// build a message
 	im, err := newImageMessage(sc, recipient, filename)
 
@@ -164,13 +139,15 @@ func (sc *SessionContext) SendImageMessage(recipient string, filename string) (e
 		return err
 	}
 
-	return sc.SendMessage(im)
+	sendMsgChan <- im
+
+	return nil
 }
 
 // SendAudioMessage sends a Audio Message to the specified ID
 // Enqueued messages will be received, not acknowledged and discarded
 // Works with various audio formats threema uses some kind of mp4 but mp3 works fine
-func (sc *SessionContext) SendAudioMessage(recipient string, filename string) (err error) {
+func (sc *SessionContext) SendAudioMessage(recipient string, filename string, sendMsgChan chan<- Message) error {
 	// build a message
 	am, err := newAudioMessage(sc, recipient, filename)
 
@@ -178,20 +155,22 @@ func (sc *SessionContext) SendAudioMessage(recipient string, filename string) (e
 		return err
 	}
 
-	return sc.SendMessage(am)
+	sendMsgChan <- am
+
+	return nil
 }
 
 // CreateNewGroup Creates a new group and notifies all members
-func (sc *SessionContext) CreateNewGroup(group Group) (groupID [8]byte, err error) {
+func (sc *SessionContext) CreateNewGroup(group Group, sendMsgChan chan<- Message) (groupID [8]byte, err error) {
 
 	group.GroupID = NewGrpID()
 
-	sc.ChangeGroupMembers(group)
+	sc.ChangeGroupMembers(group, sendMsgChan)
 	if err != nil {
 		return groupID, err
 	}
 
-	sc.RenameGroup(group)
+	sc.RenameGroup(group, sendMsgChan)
 	if err != nil {
 		return groupID, err
 	}
@@ -200,42 +179,33 @@ func (sc *SessionContext) CreateNewGroup(group Group) (groupID [8]byte, err erro
 }
 
 // RenameGroup Sends a message with the new group name to all members
-func (sc *SessionContext) RenameGroup(group Group) (err error) {
+func (sc *SessionContext) RenameGroup(group Group, sendMsgChan chan<- Message) (err error) {
 
 	sgn := newGroupManageSetNameMessages(sc, group)
 	for _, msg := range sgn {
-		err = sc.SendMessage(msg)
-		if err != nil {
-			return err
-		}
+		sendMsgChan <- msg
 	}
 
 	return nil
 }
 
 // ChangeGroupMembers Sends a message with the new group member list to all members
-func (sc *SessionContext) ChangeGroupMembers(group Group) (err error) {
+func (sc *SessionContext) ChangeGroupMembers(group Group, sendMsgChan chan<- Message) (err error) {
 
 	sgm := newGroupManageSetMembersMessages(sc, group)
 	for _, msg := range sgm {
-		err = sc.SendMessage(msg)
-		if err != nil {
-			return err
-		}
+		sendMsgChan <- msg
 	}
 
 	return nil
 }
 
 // LeaveGroup Sends a message to all members telling them the sender left the group
-func (sc *SessionContext) LeaveGroup(group Group) (err error) {
+func (sc *SessionContext) LeaveGroup(group Group, sendMsgChan chan<- Message) (err error) {
 
 	sgm := newGroupMemberLeftMessages(sc, group)
 	for _, msg := range sgm {
-		err = sc.SendMessage(msg)
-		if err != nil {
-			return err
-		}
+		sendMsgChan <- msg
 	}
 
 	return nil

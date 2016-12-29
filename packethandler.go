@@ -112,15 +112,16 @@ func (sc *SessionContext) handleClientServerMsg(buf *bytes.Buffer) interface{} {
 		}
 
 		return msgPkt
-	case CLIENTACK:
+	case SERVERACK:
 		// It is an ACK for a message we sent
 		return parseAckPkt(bytes.NewBuffer(plaintext))
 	case CONNESTABLISHED:
 		// We have received all enqueued messages
 		return parseConnEstPkt(bytes.NewBuffer(plaintext))
-
+	default:
+		fmt.Printf("Unknown PktType: %.2x", plaintext)
+		return nil
 	}
-	return nil
 }
 
 //handleMessagePacket parses a messagePacket and returns the according Message type (ImageMessage, TextMessage etc.)
