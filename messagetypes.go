@@ -204,7 +204,7 @@ func (im ImageMessage) GetPrintableContent() string {
 	return fmt.Sprintf("ImageMSG: https://%2x.blob.threema.ch/%16x, Size: %d, Nonce: %24x", im.ServerID, im.BlobID, im.Size, im.Nonce.nonce)
 }
 
-// GetImageData return the decrypted Image needs the recepients secret key
+// GetImageData return the decrypted Image needs the recipients secret key
 func (im ImageMessage) GetImageData(sc SessionContext) ([]byte, error) {
 	return downloadAndDecryptAsym(sc, im.BlobID, im.Sender().String(), im.Nonce)
 }
@@ -269,7 +269,7 @@ func (am AudioMessage) GetPrintableContent() string {
 	return fmt.Sprintf("AudioMSG: https://%2x.blob.threema.ch/%16x, Size: %d, Nonce: %24x", am.ServerID, am.BlobID, am.Size, am.Key)
 }
 
-// GetAudioData return the decrypted audio, needs the recepients secret key
+// GetAudioData return the decrypted audio, needs the recipients secret key
 func (am AudioMessage) GetAudioData(sc SessionContext) ([]byte, error) {
 	return downloadAndDecryptSym(am.BlobID, am.Key)
 }
@@ -350,7 +350,7 @@ func (im GroupImageMessage) Serialize() []byte {
 	return serializeGroupImageMsg(im).Bytes()
 }
 
-// GetImageData return the decrypted Image needs the recepients secret key
+// GetImageData return the decrypted Image needs the recipients secret key
 func (im GroupImageMessage) GetImageData(sc SessionContext) ([]byte, error) {
 	return downloadAndDecryptSym(im.BlobID, im.Key)
 }
