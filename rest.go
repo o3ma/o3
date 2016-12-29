@@ -73,12 +73,12 @@ func (tr ThreemaRest) CreateIdentity() (ThreemaID, error) {
 	fmt.Printf("PublicKey: %x\n", *publicKey)
 
 	newID := ThreemaID{
-		ID:   NewIdString(*finalResult.Identity),
+		ID:   NewIDString(*finalResult.Identity),
 		Nick: NewPubNick(*finalResult.Identity),
 		LSK:  *privateKey}
 
 	if !tr.setFeatureLevel(newID, 4) {
-		return ThreemaID{}, errors.New("Failed to set feature level!")
+		return ThreemaID{}, errors.New("failed to set feature level")
 	}
 
 	return newID, nil
@@ -129,7 +129,7 @@ func (tr ThreemaRest) setFeatureLevel(thid ThreemaID, featurelevel int) (succes 
 }
 
 // GetContactByID returns a ThreemaContact containing the public key as queried from the Threema servers
-func (tr ThreemaRest) GetContactByID(thIDString IdString) (ThreemaContact, error) {
+func (tr ThreemaRest) GetContactByID(thIDString IDString) (ThreemaContact, error) {
 	response, err := tr.client.IdentityById(thIDString.String())
 	if err != nil {
 		return ThreemaContact{}, err

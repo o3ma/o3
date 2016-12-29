@@ -12,21 +12,43 @@ import (
 type msgType uint8
 
 const (
-	TEXTMESSAGE     msgType = 0x1  // TEXTMESSAGE is the msgType used for text messages
-	IMAGEMESSAGE    msgType = 0x2  // IMAGEMESSAGE is the msgType used for image messages
-	AUDIOMESSAGE    msgType = 0x14 // AUDIOMESSAGE is the msgType used for audio messages
-	POLLMESSAGE     msgType = 0x15
+	//TEXTMESSAGE is the msgType used for text messages
+	TEXTMESSAGE msgType = 0x1
+
+	//IMAGEMESSAGE is the msgType used for image messages
+	IMAGEMESSAGE msgType = 0x2
+
+	//AUDIOMESSAGE is the msgType used for audio messages
+	AUDIOMESSAGE msgType = 0x14
+
+	//POLLMESSAGE is the msgType used for poll messages
+	POLLMESSAGE msgType = 0x15
+
+	//LOCATIONMESSAGE is the msgType used for location messages
 	LOCATIONMESSAGE msgType = 0x16
-	FILEMESSAGE     msgType = 0x17
 
-	GROUPTEXTMESSAGE        msgType = 0x41 // GROUPMESSAGE is the msgType used for group text messages
-	GROUPIMAGEMESSAGE       msgType = 0x43 // GROUPIMAGEMESSAGE is the msgType used for group image messages
+	//FILEMESSAGE is the msgType used for file messages
+	FILEMESSAGE msgType = 0x17
+
+	//GROUPTEXTMESSAGE is the msgType used for group text messages
+	GROUPTEXTMESSAGE msgType = 0x41
+
+	//GROUPIMAGEMESSAGE is the msgType used for group image messages
+	GROUPIMAGEMESSAGE msgType = 0x43
+
+	//GROUPSETMEMEBERSMESSAGE is the msgType used for set group member messages
 	GROUPSETMEMEBERSMESSAGE msgType = 0x4A
-	GROUPSETNAMEMESSAGE     msgType = 0x4B
-	GROUPMEMBERLEFTMESSAGE  msgType = 0x4C
 
-	DELIVERYRECEIPT msgType = 0x80 // DELIVERYRECEIPT is the msgType used for delivery receipts sent by the threema servers
+	//GROUPSETNAMEMESSAGE is the msgType used for set group name messages
+	GROUPSETNAMEMESSAGE msgType = 0x4B
 
+	//GROUPMEMBERLEFTMESSAGE is the msgType used for group member left messages
+	GROUPMEMBERLEFTMESSAGE msgType = 0x4C
+
+	//DELIVERYRECEIPT is the msgType used for delivery receipts sent by the threema servers
+	DELIVERYRECEIPT msgType = 0x80
+
+	//TYPINGNOTIFICATION is the msgType used for typing notifiaction messages
 	TYPINGNOTIFICATION msgType = 0x90
 
 	//GROUPSETIMAGEMESSAGE msgType = 76
@@ -64,20 +86,25 @@ func NewGrpID() [8]byte {
 
 // Message representing the various kinds of e2e ecrypted messages threema supports
 type Message interface {
-	Sender() IdString
+
+	//Sender returns the message's sender ID
+	Sender() IDString
+
+	//Serialize returns a fully serialized byte slice of the message
 	Serialize() []byte
+
 	header() messageHeader
 }
 
 type messageHeader struct {
-	sender    IdString
-	recipient IdString
+	sender    IDString
+	recipient IDString
 	id        uint64
 	time      time.Time
 	pubNick   PubNick
 }
 
-func (mh messageHeader) Sender() IdString {
+func (mh messageHeader) Sender() IDString {
 	return mh.sender
 }
 
@@ -105,10 +132,12 @@ func (tm TextMessage) String() string {
 	return tm.text
 }
 
+//Serialize returns a fully serialized byte slice of a TextMessage
 func (tm TextMessage) Serialize() []byte {
 	return serializeTextMsg(tm).Bytes()
 }
 
+//Serialize returns a fully serialized byte slice of a TypingNotificationMessage
 func (tn TypingNotificationMessage) Serialize() []byte {
 	return serializeTypingNotification(tn).Bytes()
 }
@@ -184,7 +213,7 @@ func (im ImageMessage) GetImageData(sc SessionContext) ([]byte, error) {
 func (im *ImageMessage) SetImageData(filename string, sc SessionContext) error {
 	plainImage, err := ioutil.ReadFile(filename)
 	if err != nil {
-		return errors.New("Could not load image!")
+		return errors.New("could not load image")
 	}
 
 	im.Nonce, im.ServerID, im.Size, im.BlobID, err = encryptAndUploadAsym(sc, plainImage, im.recipient.String())
@@ -192,6 +221,7 @@ func (im *ImageMessage) SetImageData(filename string, sc SessionContext) error {
 	return err
 }
 
+//Serialize returns a fully serialized byte slice of an ImageMessage
 func (im ImageMessage) Serialize() []byte {
 	return serializeImageMsg(im).Bytes()
 }
@@ -228,27 +258,27 @@ type audioMessageBody struct {
 	Key      [32]byte
 }
 
-//ImageMessage represents an image message as sent e2e encrypted to other threema users
+//AudioMessage represents an image message as sent e2e encrypted to other threema users
 type AudioMessage struct {
 	messageHeader
 	audioMessageBody
 }
 
-// GetPrintableContent returns a printable represantion of a ImageMessage.
+// GetPrintableContent returns a printable represantion of an AudioMessage
 func (am AudioMessage) GetPrintableContent() string {
 	return fmt.Sprintf("AudioMSG: https://%2x.blob.threema.ch/%16x, Size: %d, Nonce: %24x", am.ServerID, am.BlobID, am.Size, am.Key)
 }
 
-// GetImageData return the decrypted Image needs the recepients secret key
+// GetAudioData return the decrypted audio, needs the recepients secret key
 func (am AudioMessage) GetAudioData(sc SessionContext) ([]byte, error) {
 	return downloadAndDecryptSym(am.BlobID, am.Key)
 }
 
-// SetImageData encrypts and uploads the image. Sets the blob info in the ImageMessage. Needs the recipients public key.
+// SetAudioData encrypts and uploads the audio. Sets the blob info in the ImageMessage. Needs the recipients public key.
 func (am *AudioMessage) SetAudioData(filename string, sc SessionContext) error {
 	plainAudio, err := ioutil.ReadFile(filename)
 	if err != nil {
-		return errors.New("Could not load audio!")
+		return errors.New("could not load audio")
 	}
 
 	// TODO: Should we have a whole media lib as dependency just to set this to the proper value?
@@ -259,6 +289,7 @@ func (am *AudioMessage) SetAudioData(filename string, sc SessionContext) error {
 	return err
 }
 
+//Serialize returns a fully serialized byte slice of an AudioMessage
 func (am AudioMessage) Serialize() []byte {
 	return serializeAudioMsg(am).Bytes()
 }
@@ -266,6 +297,7 @@ func (am AudioMessage) Serialize() []byte {
 // TYPING NOTIFICATIONS
 ////////////////////////////////////////////////////////////////
 
+//TypingNotificationMessage represents a typing notifiaction message
 type TypingNotificationMessage struct {
 	messageHeader
 	typingNotificationBody
@@ -279,7 +311,7 @@ type typingNotificationBody struct {
 ////////////////////////////////////////////////////////////////
 
 type groupMessageHeader struct {
-	creatorID IdString
+	creatorID IDString
 	groupID   [8]byte
 }
 
@@ -313,6 +345,7 @@ type GroupImageMessage struct {
 	groupImageMessageBody
 }
 
+//Serialize returns a fully serialized byte slice of a GroupImageMessage
 func (im GroupImageMessage) Serialize() []byte {
 	return serializeGroupImageMsg(im).Bytes()
 }
@@ -326,7 +359,7 @@ func (im GroupImageMessage) GetImageData(sc SessionContext) ([]byte, error) {
 func (im *GroupImageMessage) SetImageData(filename string) error {
 	plainImage, err := ioutil.ReadFile(filename)
 	if err != nil {
-		return errors.New("Could not load image!")
+		return errors.New("could not load image")
 	}
 
 	im.Key, im.ServerID, im.Size, im.BlobID, err = encryptAndUploadSym(plainImage)
@@ -355,24 +388,25 @@ func newGroupMemberLeftMessages(sc *SessionContext, group Group) []GroupMemberLe
 
 }
 
+//Serialize returns a fully serialized byte slice of a GroupMemberLeftMessage
 func (gml GroupMemberLeftMessage) Serialize() []byte {
 	return serializeGroupMemberLeftMessage(gml).Bytes()
 }
 
-// GroupManageSetNameMessage represents a the message sent e2e encrypted by a group's creator to all members
+//GroupMemberLeftMessage represents a group leaving message
 type GroupMemberLeftMessage struct {
 	groupMessageHeader
 	messageHeader
 }
 
-type DeliveryReceiptMessageBody struct {
+type deliveryReceiptMessageBody struct {
 	MsgID uint64
 }
 
 // DeliveryReceiptMessage represents a delivery receipt as sent e2e encrypted to other threema users when a message has been received
 type DeliveryReceiptMessage struct {
 	messageHeader
-	DeliveryReceiptMessageBody
+	deliveryReceiptMessageBody
 }
 
 // GetPrintableContent returns a printable represantion of a DeliveryReceiptMessage.
@@ -380,6 +414,7 @@ func (dm DeliveryReceiptMessage) GetPrintableContent() string {
 	return fmt.Sprintf("Delivered: %x", dm.MsgID)
 }
 
+//Serialize returns a fully serialized byte slice of a SeliveryReceiptMessage
 func (dm DeliveryReceiptMessage) Serialize() []byte {
 	panic("Not Implemented")
 }
@@ -418,7 +453,7 @@ func newGroupManageSetMembersMessages(sc *SessionContext, group Group) []GroupMa
 }
 
 type groupManageSetMembersMessageBody struct {
-	groupMembers []IdString
+	groupMembers []IDString
 }
 
 // GroupManageSetMembersMessage represents the message sent e2e encrypted by a group's creator to all members
@@ -428,10 +463,12 @@ type GroupManageSetMembersMessage struct {
 	groupManageSetMembersMessageBody
 }
 
-func (gmm GroupManageSetMembersMessage) Members() []IdString {
+//Members returns a byte slice of IDString of all members contained in the message
+func (gmm GroupManageSetMembersMessage) Members() []IDString {
 	return gmm.groupMembers
 }
 
+//Serialize returns a fully serialized byte slice of a GroupManageSetMembersMessage
 func (gmm GroupManageSetMembersMessage) Serialize() []byte {
 	return serializeGroupManageSetMembersMessage(gmm).Bytes()
 }
@@ -466,11 +503,12 @@ func (gmm groupManageSetNameMessageBody) Name() string {
 	return gmm.groupName
 }
 
+//Serialize returns a fully serialized byte slice of a GroupManageSetNameMessage
 func (gmm GroupManageSetNameMessage) Serialize() []byte {
 	return serializeGroupManageSetNameMessage(gmm).Bytes()
 }
 
-// GroupManageMemberLeftMessage represents a the message sent e2e encrypted by a group's creator to all members
+//GroupManageSetNameMessage represents a group management messate to set the group name
 type GroupManageSetNameMessage struct {
 	groupManageMessageHeader
 	messageHeader

@@ -1,11 +1,9 @@
-/*
- *Handler functions for invididual incoming packets. All functions here are called from
- *communicationhandler. Functions in here use packetparser to parse packets into their
- *respective structs. Any action required upon receiving a specific packet is then per-
- *formed within its handler like updating nonces and storing keys in the session context.
- *Errors in underlying functions bubble up to here in the form of panics and are passed
- *on to communicationhandler for central conversion to go errors.
- */
+// Package o3 handler functions for invididual incoming packets. All functions here are called from
+// communicationhandler. Functions in here use packetparser to parse packets into their
+// respective structs. Any action required upon receiving a specific packet is then per-
+// formed within its handler like updating nonces and storing keys in the session context.
+// Errors in underlying functions bubble up to here in the form of panics and are passed
+// on to communicationhandler for central conversion to go errors.
 package o3
 
 import (
@@ -174,7 +172,7 @@ func (sc *SessionContext) handleMessagePacket(mp messagePacket) (Message, error)
 	case DELIVERYRECEIPT:
 		message = DeliveryReceiptMessage{
 			messageHeader:              newMsgHdrFromPkt(mp),
-			DeliveryReceiptMessageBody: parseDeliveryReceipt(buf)}
+			deliveryReceiptMessageBody: parseDeliveryReceipt(buf)}
 	case TYPINGNOTIFICATION:
 		message = TypingNotificationMessage{
 			messageHeader:          newMsgHdrFromPkt(mp),

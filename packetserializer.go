@@ -315,7 +315,7 @@ func serializeNoncePrefix(buf *bytes.Buffer, np [16]byte) *bytes.Buffer {
 	return contextualSerializeHelper("nonce prefix", buf, np)
 }
 
-func serializeIDString(buf *bytes.Buffer, is IdString) *bytes.Buffer {
+func serializeIDString(buf *bytes.Buffer, is IDString) *bytes.Buffer {
 	return contextualSerializeHelper("id string", buf, is)
 }
 

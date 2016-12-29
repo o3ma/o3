@@ -23,7 +23,7 @@ func uploadBlob(blob []byte) ([16]byte, error) {
 	CAPool := x509.NewCertPool()
 	severCert, err := ioutil.ReadFile("./cert.pem")
 	if err != nil {
-		return [16]byte{}, errors.New("Could not load server certificate!")
+		return [16]byte{}, errors.New("could not load server certificate")
 	}
 	CAPool.AppendCertsFromPEM(severCert)
 
@@ -57,7 +57,7 @@ func uploadBlob(blob []byte) ([16]byte, error) {
 		return [16]byte{}, err
 	}
 	if resp.StatusCode != 200 {
-		return [16]byte{}, errors.New("Could not load server certificate!")
+		return [16]byte{}, errors.New("could not load server certificate")
 	}
 
 	blobIDraw, err := ioutil.ReadAll(resp.Body)
@@ -83,7 +83,7 @@ func encryptAndUploadAsym(sc SessionContext, plainImage []byte, recipientName st
 	recipient, inContacts := threemaID.Contacts.Get(recipientName)
 	if !inContacts {
 		var tr ThreemaRest
-		recipient, err = tr.GetContactByID(NewIdString(recipientName))
+		recipient, err = tr.GetContactByID(NewIDString(recipientName))
 		if err != nil {
 			return nonce{}, 0, 0, [16]byte{}, err
 		}
@@ -128,7 +128,7 @@ func downloadBlob(blobID [16]byte) ([]byte, error) {
 	CAPool := x509.NewCertPool()
 	severCert, err := ioutil.ReadFile("./cert.pem")
 	if err != nil {
-		return []byte{}, errors.New("Could not load server certificate!")
+		return []byte{}, errors.New("could not load server certificate")
 	}
 	CAPool.AppendCertsFromPEM(severCert)
 
@@ -176,7 +176,7 @@ func downloadAndDecryptAsym(sc SessionContext, blobID [16]byte, senderName strin
 	sender, inContacts := threemaID.Contacts.Get(senderName)
 	if !inContacts {
 		var tr ThreemaRest
-		sender, err = tr.GetContactByID(NewIdString(senderName))
+		sender, err = tr.GetContactByID(NewIDString(senderName))
 		if err != nil {
 			return []byte{}, err
 		}
@@ -184,7 +184,7 @@ func downloadAndDecryptAsym(sc SessionContext, blobID [16]byte, senderName strin
 
 	plainPicture, success := box.Open(nil, ciphertext, blobNonce.bytes(), &sender.LPK, &threemaID.LSK)
 	if !success {
-		return []byte{}, errors.New("Could not decrypt image message!")
+		return []byte{}, errors.New("could not decrypt image message")
 	}
 
 	return plainPicture, nil
@@ -201,7 +201,7 @@ func downloadAndDecryptSym(blobID [16]byte, key [32]byte) (plaintext []byte, err
 	nonce[23] = 1
 	plainPicture, success := secretbox.Open(nil, ciphertext, &nonce, &key)
 	if !success {
-		return []byte{}, errors.New("Could not decrypt image message!")
+		return []byte{}, errors.New("could not decrypt image message")
 	}
 
 	return plainPicture, nil

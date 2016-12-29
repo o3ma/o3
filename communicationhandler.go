@@ -65,7 +65,7 @@ func (sc *SessionContext) ReceiveMessages() (<-chan ReceivedMsg, error) {
 				if err == io.EOF {
 					break recv
 				}
-				Error.Printf("receivePacket failed: %s", err)
+				//Error.Printf("receivePacket failed: %s", err)
 				msgchan <- ReceivedMsg{
 					Msg: nil,
 					Err: err,
@@ -259,7 +259,7 @@ func (sc *SessionContext) receivePacket(reader io.Reader) (pkt interface{}, err 
 		if err != nil {
 			return nil, err
 		}
-		return nil, fmt.Errorf("Packet of invalid length received. Expected: %d; received: %d\n", length, n)
+		return nil, fmt.Errorf("packet of invalid length received. Expected: %d; received: %d", length, n)
 	}
 
 	pkt = sc.handleClientServerMsg(bytes.NewBuffer(buf))
@@ -274,7 +274,7 @@ func receivePacketLength(reader io.Reader) (uint16, error) {
 		if err != nil {
 			return 0, err
 		}
-		return 0, fmt.Errorf("No parseable packet length received\n")
+		return 0, fmt.Errorf("no parseable packet length received")
 	}
 	err = binary.Read(bytes.NewBuffer(lbuf), binary.LittleEndian, &length)
 	if err != nil {

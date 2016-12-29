@@ -22,8 +22,8 @@ const (
 // ThreemaMessageHeader contains fields that every type of message needs
 type messagePacket struct {
 	PktType    pktType
-	Sender     IdString
-	Recipient  IdString
+	Sender     IDString
+	Recipient  IDString
 	ID         uint64
 	Time       time.Time
 	Flags      msgFlags
@@ -35,7 +35,7 @@ type messagePacket struct {
 
 type ackPacket struct {
 	PktType  pktType
-	SenderID IdString
+	SenderID IDString
 	MsgID    uint64
 }
 
@@ -59,7 +59,7 @@ type authPacket struct {
 
 //plain content of an auth packet
 type authPacketPayload struct {
-	Username          IdString
+	Username          IDString
 	SysData           [32]byte
 	ServerNoncePrefix [16]byte
 	RandomNonce       nonce
