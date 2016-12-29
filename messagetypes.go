@@ -155,7 +155,7 @@ func newTextMessage(sc *SessionContext, recipient string, text string) (TextMess
 			recipient: recipientID.ID,
 			id:        NewMsgID(),
 			time:      time.Now(),
-			pubNick:   NewPubNick(sc.ID.String()),
+			pubNick:   sc.ID.Nick,
 		},
 		textMessageBody{text: text},
 	}
@@ -175,7 +175,7 @@ func newImageMessage(sc *SessionContext, recipient string, filename string) (Ima
 			recipient: recipientID.ID,
 			id:        NewMsgID(),
 			time:      time.Now(),
-			pubNick:   NewPubNick(sc.ID.String()),
+			pubNick:   sc.ID.Nick,
 		},
 		imageMessageBody{},
 	}
@@ -239,7 +239,7 @@ func newAudioMessage(sc *SessionContext, recipient string, filename string) (Aud
 			recipient: recipientID.ID,
 			id:        NewMsgID(),
 			time:      time.Now(),
-			pubNick:   NewPubNick(sc.ID.String()),
+			pubNick:   sc.ID.Nick,
 		},
 		audioMessageBody{},
 	}
@@ -380,7 +380,7 @@ func newGroupMemberLeftMessages(sc *SessionContext, group Group) []GroupMemberLe
 				recipient: group.Members[i],
 				id:        NewMsgID(),
 				time:      time.Now(),
-				pubNick:   NewPubNick(sc.ID.String())}}
+				pubNick:   sc.ID.Nick}}
 
 	}
 
@@ -442,7 +442,7 @@ func newGroupManageSetMembersMessages(sc *SessionContext, group Group) []GroupMa
 				recipient: group.Members[i],
 				id:        NewMsgID(),
 				time:      time.Now(),
-				pubNick:   NewPubNick(sc.ID.String())},
+				pubNick:   sc.ID.Nick},
 			groupManageSetMembersMessageBody{
 				groupMembers: group.Members}}
 
@@ -485,7 +485,7 @@ func newGroupManageSetNameMessages(sc *SessionContext, group Group) []GroupManag
 				recipient: group.Members[i],
 				id:        NewMsgID(),
 				time:      time.Now(),
-				pubNick:   NewPubNick(sc.ID.String())},
+				pubNick:   sc.ID.Nick},
 			groupManageSetNameMessageBody{
 				groupName: group.Name}}
 
