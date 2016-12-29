@@ -334,7 +334,7 @@ func parsenbytes(buf *bytes.Buffer, size int) []byte {
 	bytes := make([]byte, size)
 	n, err := buf.Read(bytes)
 	if n != size || err != nil {
-		panic(fmt.Sprintf("%i bytes of data", size))
+		panic(fmt.Sprintf("%d bytes of data", size))
 	}
 	return bytes
 }
