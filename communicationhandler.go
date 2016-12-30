@@ -117,7 +117,7 @@ func (sc *SessionContext) sendLoop() {
 // Enqueued messages will be received, not acknowledged and discarded
 func (sc *SessionContext) SendTextMessage(recipient string, text string, sendMsgChan chan<- Message) error {
 	// build a message
-	tm, err := newTextMessage(sc, recipient, text)
+	tm, err := NewTextMessage(sc, recipient, text)
 
 	// TODO: error handling
 	if err != nil {
@@ -133,7 +133,7 @@ func (sc *SessionContext) SendTextMessage(recipient string, text string, sendMsg
 // Enqueued messages will be received, not acknowledged and discarded
 func (sc *SessionContext) SendImageMessage(recipient string, filename string, sendMsgChan chan<- Message) error {
 	// build a message
-	im, err := newImageMessage(sc, recipient, filename)
+	im, err := NewImageMessage(sc, recipient, filename)
 
 	if err != nil {
 		return err
@@ -149,7 +149,7 @@ func (sc *SessionContext) SendImageMessage(recipient string, filename string, se
 // Works with various audio formats threema uses some kind of mp4 but mp3 works fine
 func (sc *SessionContext) SendAudioMessage(recipient string, filename string, sendMsgChan chan<- Message) error {
 	// build a message
-	am, err := newAudioMessage(sc, recipient, filename)
+	am, err := NewAudioMessage(sc, recipient, filename)
 
 	if err != nil {
 		return err
@@ -181,7 +181,7 @@ func (sc *SessionContext) CreateNewGroup(group Group, sendMsgChan chan<- Message
 // RenameGroup Sends a message with the new group name to all members
 func (sc *SessionContext) RenameGroup(group Group, sendMsgChan chan<- Message) (err error) {
 
-	sgn := newGroupManageSetNameMessages(sc, group)
+	sgn := NewGroupManageSetNameMessages(sc, group)
 	for _, msg := range sgn {
 		sendMsgChan <- msg
 	}
@@ -192,7 +192,7 @@ func (sc *SessionContext) RenameGroup(group Group, sendMsgChan chan<- Message) (
 // ChangeGroupMembers Sends a message with the new group member list to all members
 func (sc *SessionContext) ChangeGroupMembers(group Group, sendMsgChan chan<- Message) (err error) {
 
-	sgm := newGroupManageSetMembersMessages(sc, group)
+	sgm := NewGroupManageSetMembersMessages(sc, group)
 	for _, msg := range sgm {
 		sendMsgChan <- msg
 	}
@@ -203,7 +203,7 @@ func (sc *SessionContext) ChangeGroupMembers(group Group, sendMsgChan chan<- Mes
 // LeaveGroup Sends a message to all members telling them the sender left the group
 func (sc *SessionContext) LeaveGroup(group Group, sendMsgChan chan<- Message) (err error) {
 
-	sgm := newGroupMemberLeftMessages(sc, group)
+	sgm := NewGroupMemberLeftMessages(sc, group)
 	for _, msg := range sgm {
 		sendMsgChan <- msg
 	}

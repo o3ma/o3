@@ -142,8 +142,8 @@ func (tn TypingNotificationMessage) Serialize() []byte {
 	return serializeTypingNotification(tn).Bytes()
 }
 
-// newTextMessage returns a TextMessage ready to be encrypted
-func newTextMessage(sc *SessionContext, recipient string, text string) (TextMessage, error) {
+// NewTextMessage returns a TextMessage ready to be encrypted
+func NewTextMessage(sc *SessionContext, recipient string, text string) (TextMessage, error) {
 	recipientID, ok := sc.ID.Contacts.Get(recipient)
 	if !ok {
 		return TextMessage{}, fmt.Errorf("Cannot find recipient in contacts: %s", recipient)
@@ -162,8 +162,8 @@ func newTextMessage(sc *SessionContext, recipient string, text string) (TextMess
 	return tm, nil
 }
 
-// newImageMessage returns a ImageMessage ready to be encrypted
-func newImageMessage(sc *SessionContext, recipient string, filename string) (ImageMessage, error) {
+// NewImageMessage returns a ImageMessage ready to be encrypted
+func NewImageMessage(sc *SessionContext, recipient string, filename string) (ImageMessage, error) {
 	recipientID, ok := sc.ID.Contacts.Get(recipient)
 	if !ok {
 		return ImageMessage{}, fmt.Errorf("Cannot find recipient in contacts: %s", recipient)
@@ -226,8 +226,8 @@ func (im ImageMessage) Serialize() []byte {
 	return serializeImageMsg(im).Bytes()
 }
 
-// newAudioMessage returns a ImageMessage ready to be encrypted
-func newAudioMessage(sc *SessionContext, recipient string, filename string) (AudioMessage, error) {
+// NewAudioMessage returns a ImageMessage ready to be encrypted
+func NewAudioMessage(sc *SessionContext, recipient string, filename string) (AudioMessage, error) {
 	recipientID, ok := sc.ID.Contacts.Get(recipient)
 	if !ok {
 		return AudioMessage{}, fmt.Errorf("Cannot find recipient in contacts: %s", recipient)
@@ -367,7 +367,8 @@ func (im *GroupImageMessage) SetImageData(filename string) error {
 	return err
 }
 
-func newGroupMemberLeftMessages(sc *SessionContext, group Group) []GroupMemberLeftMessage {
+// NewGroupMemberLeftMessages returns a slice of GroupMemberLeftMessages ready to be encrypted
+func NewGroupMemberLeftMessages(sc *SessionContext, group Group) []GroupMemberLeftMessage {
 	gml := make([]GroupMemberLeftMessage, len(group.Members))
 
 	for i := 0; i < len(group.Members); i++ {
@@ -430,7 +431,8 @@ func (gmh groupManageMessageHeader) GroupID() [8]byte {
 	return gmh.groupID
 }
 
-func newGroupManageSetMembersMessages(sc *SessionContext, group Group) []GroupManageSetMembersMessage {
+// NewGroupManageSetMembersMessages returns a slice of GroupManageSetMembersMessages ready to be encrypted
+func NewGroupManageSetMembersMessages(sc *SessionContext, group Group) []GroupManageSetMembersMessage {
 	gms := make([]GroupManageSetMembersMessage, len(group.Members))
 
 	for i := 0; i < len(group.Members); i++ {
@@ -473,7 +475,8 @@ func (gmm GroupManageSetMembersMessage) Serialize() []byte {
 	return serializeGroupManageSetMembersMessage(gmm).Bytes()
 }
 
-func newGroupManageSetNameMessages(sc *SessionContext, group Group) []GroupManageSetNameMessage {
+// NewGroupManageSetNameMessages returns a slice of GroupMenageSetNameMessages ready to be encrypted
+func NewGroupManageSetNameMessages(sc *SessionContext, group Group) []GroupManageSetNameMessage {
 	gms := make([]GroupManageSetNameMessage, len(group.Members))
 
 	for i := 0; i < len(group.Members); i++ {
