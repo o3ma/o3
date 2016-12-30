@@ -102,6 +102,7 @@ func (sc *SessionContext) handleClientServerMsg(buf *bytes.Buffer) interface{} {
 			if err != nil {
 				panic("Sender's PublicKey could not be found!")
 			}
+			sc.ID.Contacts.Add(sender)
 		}
 		// Decrypt using our private and their public key
 		msgPkt.Plaintext, ok = box.Open(nil, msgPkt.Ciphertext, msgPkt.Nonce.bytes(), &sender.LPK, &sc.ID.LSK)

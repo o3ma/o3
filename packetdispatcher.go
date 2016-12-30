@@ -109,11 +109,18 @@ func (sc *SessionContext) dispatchMessage(wr io.Writer, m Message) {
 
 	randNonce := newRandomNonce()
 
-	recipientID, ok := sc.ID.Contacts.Get(mh.recipient.String())
+	recipient, ok := sc.ID.Contacts.Get(mh.recipient.String())
 	if !ok {
-		panic("Recipient not found in contacts!")
+		var tr ThreemaRest
+		var err error
+
+		recipient, err = tr.GetContactByID(mh.recipient)
+		if err != nil {
+			panic("Recipient's PublicKey could not be found!")
+		}
+		sc.ID.Contacts.Add(recipient)
 	}
-	msgCipherText := box.Seal(nil, m.Serialize(), randNonce.bytes(), &recipientID.LPK, &sc.ID.LSK)
+	msgCipherText := box.Seal(nil, m.Serialize(), randNonce.bytes(), &recipient.LPK, &sc.ID.LSK)
 
 	messagePkt := messagePacket{
 		PktType:    SENDINGMSG,

@@ -54,6 +54,19 @@ const (
 	//GROUPSETIMAGEMESSAGE msgType = 76
 )
 
+type msgStatus uint8
+
+const (
+	// MSGDELIVERED indicates message was received by peer
+	MSGDELIVERED msgStatus = 0x1
+	// MSGREAD indicates message was read by peer
+	MSGREAD msgStatus = 0x2
+	// MSGAPPROVED indicates message was approved (thumb up) by peer
+	MSGAPPROVED msgStatus = 0x3
+	// MSGDISAPPROVED indicates message was disapproved (thumb down) by peer
+	MSGDISAPPROVED msgStatus = 0x4
+)
+
 type msgFlags struct {
 	PushMessage                    bool
 	NoQueuing                      bool
@@ -144,18 +157,15 @@ func (tn TypingNotificationMessage) Serialize() []byte {
 
 // NewTextMessage returns a TextMessage ready to be encrypted
 func NewTextMessage(sc *SessionContext, recipient string, text string) (TextMessage, error) {
-	recipientID, ok := sc.ID.Contacts.Get(recipient)
-	if !ok {
-		return TextMessage{}, fmt.Errorf("Cannot find recipient in contacts: %s", recipient)
-	}
+	recipientID := NewIDString(recipient)
 
 	tm := TextMessage{
 		messageHeader{
 			sender:    sc.ID.ID,
-			recipient: recipientID.ID,
+			recipient: recipientID,
 			id:        NewMsgID(),
 			time:      time.Now(),
-			pubNick:   NewPubNick(sc.ID.String()),
+			pubNick:   sc.ID.Nick,
 		},
 		textMessageBody{text: text},
 	}
@@ -164,18 +174,15 @@ func NewTextMessage(sc *SessionContext, recipient string, text string) (TextMess
 
 // NewImageMessage returns a ImageMessage ready to be encrypted
 func NewImageMessage(sc *SessionContext, recipient string, filename string) (ImageMessage, error) {
-	recipientID, ok := sc.ID.Contacts.Get(recipient)
-	if !ok {
-		return ImageMessage{}, fmt.Errorf("Cannot find recipient in contacts: %s", recipient)
-	}
+	recipientID := NewIDString(recipient)
 
 	im := ImageMessage{
 		messageHeader{
 			sender:    sc.ID.ID,
-			recipient: recipientID.ID,
+			recipient: recipientID,
 			id:        NewMsgID(),
 			time:      time.Now(),
-			pubNick:   NewPubNick(sc.ID.String()),
+			pubNick:   sc.ID.Nick,
 		},
 		imageMessageBody{},
 	}
@@ -228,18 +235,15 @@ func (im ImageMessage) Serialize() []byte {
 
 // NewAudioMessage returns a ImageMessage ready to be encrypted
 func NewAudioMessage(sc *SessionContext, recipient string, filename string) (AudioMessage, error) {
-	recipientID, ok := sc.ID.Contacts.Get(recipient)
-	if !ok {
-		return AudioMessage{}, fmt.Errorf("Cannot find recipient in contacts: %s", recipient)
-	}
+	recipientID := NewIDString(recipient)
 
 	im := AudioMessage{
 		messageHeader{
 			sender:    sc.ID.ID,
-			recipient: recipientID.ID,
+			recipient: recipientID,
 			id:        NewMsgID(),
 			time:      time.Now(),
-			pubNick:   NewPubNick(sc.ID.String()),
+			pubNick:   sc.ID.Nick,
 		},
 		audioMessageBody{},
 	}
@@ -381,7 +385,7 @@ func NewGroupMemberLeftMessages(sc *SessionContext, group Group) []GroupMemberLe
 				recipient: group.Members[i],
 				id:        NewMsgID(),
 				time:      time.Now(),
-				pubNick:   NewPubNick(sc.ID.String())}}
+				pubNick:   sc.ID.Nick}}
 
 	}
 
@@ -401,7 +405,8 @@ type GroupMemberLeftMessage struct {
 }
 
 type deliveryReceiptMessageBody struct {
-	MsgID uint64
+	status byte
+	msgID  uint64
 }
 
 // DeliveryReceiptMessage represents a delivery receipt as sent e2e encrypted to other threema users when a message has been received
@@ -412,12 +417,22 @@ type DeliveryReceiptMessage struct {
 
 // GetPrintableContent returns a printable represantion of a DeliveryReceiptMessage.
 func (dm DeliveryReceiptMessage) GetPrintableContent() string {
-	return fmt.Sprintf("Delivered: %x", dm.MsgID)
+	return fmt.Sprintf("Delivered: %x", dm.msgID)
 }
 
 //Serialize returns a fully serialized byte slice of a SeliveryReceiptMessage
 func (dm DeliveryReceiptMessage) Serialize() []byte {
 	panic("Not Implemented")
+}
+
+// Status returns the messages status
+func (dm DeliveryReceiptMessage) Status() byte {
+	return dm.status
+}
+
+// MsgID returns the message id
+func (dm DeliveryReceiptMessage) MsgID() uint64 {
+	return dm.msgID
 }
 
 // GROUP MANAGEMENT MESSAGES
@@ -444,7 +459,7 @@ func NewGroupManageSetMembersMessages(sc *SessionContext, group Group) []GroupMa
 				recipient: group.Members[i],
 				id:        NewMsgID(),
 				time:      time.Now(),
-				pubNick:   NewPubNick(sc.ID.String())},
+				pubNick:   sc.ID.Nick},
 			groupManageSetMembersMessageBody{
 				groupMembers: group.Members}}
 
@@ -488,7 +503,7 @@ func NewGroupManageSetNameMessages(sc *SessionContext, group Group) []GroupManag
 				recipient: group.Members[i],
 				id:        NewMsgID(),
 				time:      time.Now(),
-				pubNick:   NewPubNick(sc.ID.String())},
+				pubNick:   sc.ID.Nick},
 			groupManageSetNameMessageBody{
 				groupName: group.Name}}
 
