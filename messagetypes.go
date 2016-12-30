@@ -420,7 +420,7 @@ type GroupMemberLeftMessage struct {
 	messageHeader
 }
 
-// NewTextMessage returns a TextMessage ready to be encrypted
+// NewDeliveryReceiptMessage returns a TextMessage ready to be encrypted
 func NewDeliveryReceiptMessage(sc *SessionContext, recipient string, msgID uint64, msgStatus msgStatus) (DeliveryReceiptMessage, error) {
 	recipientID := NewIDString(recipient)
 
