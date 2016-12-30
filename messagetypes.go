@@ -144,15 +144,12 @@ func (tn TypingNotificationMessage) Serialize() []byte {
 
 // newTextMessage returns a TextMessage ready to be encrypted
 func newTextMessage(sc *SessionContext, recipient string, text string) (TextMessage, error) {
-	recipientID, ok := sc.ID.Contacts.Get(recipient)
-	if !ok {
-		return TextMessage{}, fmt.Errorf("Cannot find recipient in contacts: %s", recipient)
-	}
+	recipientID := NewIDString(recipient)
 
 	tm := TextMessage{
 		messageHeader{
 			sender:    sc.ID.ID,
-			recipient: recipientID.ID,
+			recipient: recipientID,
 			id:        NewMsgID(),
 			time:      time.Now(),
 			pubNick:   sc.ID.Nick,
@@ -164,15 +161,12 @@ func newTextMessage(sc *SessionContext, recipient string, text string) (TextMess
 
 // newImageMessage returns a ImageMessage ready to be encrypted
 func newImageMessage(sc *SessionContext, recipient string, filename string) (ImageMessage, error) {
-	recipientID, ok := sc.ID.Contacts.Get(recipient)
-	if !ok {
-		return ImageMessage{}, fmt.Errorf("Cannot find recipient in contacts: %s", recipient)
-	}
+	recipientID := NewIDString(recipient)
 
 	im := ImageMessage{
 		messageHeader{
 			sender:    sc.ID.ID,
-			recipient: recipientID.ID,
+			recipient: recipientID,
 			id:        NewMsgID(),
 			time:      time.Now(),
 			pubNick:   sc.ID.Nick,
@@ -228,15 +222,12 @@ func (im ImageMessage) Serialize() []byte {
 
 // newAudioMessage returns a ImageMessage ready to be encrypted
 func newAudioMessage(sc *SessionContext, recipient string, filename string) (AudioMessage, error) {
-	recipientID, ok := sc.ID.Contacts.Get(recipient)
-	if !ok {
-		return AudioMessage{}, fmt.Errorf("Cannot find recipient in contacts: %s", recipient)
-	}
+	recipientID := NewIDString(recipient)
 
 	im := AudioMessage{
 		messageHeader{
 			sender:    sc.ID.ID,
-			recipient: recipientID.ID,
+			recipient: recipientID,
 			id:        NewMsgID(),
 			time:      time.Now(),
 			pubNick:   sc.ID.Nick,
