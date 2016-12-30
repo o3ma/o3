@@ -54,6 +54,19 @@ const (
 	//GROUPSETIMAGEMESSAGE msgType = 76
 )
 
+type msgStatus uint8
+
+const (
+	// MSGDELIVERED indicates message was received by peer
+	MSGDELIVERED msgStatus = 0x1
+	// MSGREAD indicates message was read by peer
+	MSGREAD msgStatus = 0x2
+	// MSGAPPROVED indicates message was approved (thumb up) by peer
+	MSGAPPROVED msgStatus = 0x3
+	// MSGDISAPPROVED indicates message was disapproved (thumb down) by peer
+	MSGDISAPPROVED msgStatus = 0x4
+)
+
 type msgFlags struct {
 	PushMessage                    bool
 	NoQueuing                      bool
@@ -391,7 +404,8 @@ type GroupMemberLeftMessage struct {
 }
 
 type deliveryReceiptMessageBody struct {
-	MsgID uint64
+	status byte
+	msgID  uint64
 }
 
 // DeliveryReceiptMessage represents a delivery receipt as sent e2e encrypted to other threema users when a message has been received
@@ -402,12 +416,22 @@ type DeliveryReceiptMessage struct {
 
 // GetPrintableContent returns a printable represantion of a DeliveryReceiptMessage.
 func (dm DeliveryReceiptMessage) GetPrintableContent() string {
-	return fmt.Sprintf("Delivered: %x", dm.MsgID)
+	return fmt.Sprintf("Delivered: %x", dm.msgID)
 }
 
 //Serialize returns a fully serialized byte slice of a SeliveryReceiptMessage
 func (dm DeliveryReceiptMessage) Serialize() []byte {
 	panic("Not Implemented")
+}
+
+// Status returns the messages status
+func (dm DeliveryReceiptMessage) Status() byte {
+	return dm.status
+}
+
+// MsgID returns the message id
+func (dm DeliveryReceiptMessage) MsgID() uint64 {
+	return dm.msgID
 }
 
 // GROUP MANAGEMENT MESSAGES

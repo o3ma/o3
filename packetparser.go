@@ -35,9 +35,14 @@ func parseAckPkt(buf *bytes.Buffer) (ap ackPacket) {
 }
 
 func parseDeliveryReceipt(buf *bytes.Buffer) deliveryReceiptMessageBody {
-	parsenbytes(buf, 1)
+	// Strip padding
+	// TODO: this should be a helper function
+	paddingLen := int(buf.Bytes()[buf.Len()-1])
+	buf.Truncate(buf.Len() - paddingLen)
+
 	dm := deliveryReceiptMessageBody{
-		MsgID: parseUint64(buf)}
+		status: parseByte(buf),
+		msgID:  parseUint64(buf)}
 	return dm
 }
 
