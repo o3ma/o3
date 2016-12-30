@@ -162,11 +162,11 @@ func serializeAckPkt(ap ackPacket) *bytes.Buffer {
 	return buf
 }
 
-func serializeTextMsg(dm DeliveryReceiptMessage) *bytes.Buffer {
+func serializeDeliveryReceiptMsg(dm DeliveryReceiptMessage) *bytes.Buffer {
 
 	buf := new(bytes.Buffer)
 	serializeMsgType(buf, DELIVERYRECEIPT)
-	serializeByte(buf, dm.status)
+	serializeMsgStatus(buf, dm.status)
 	serializeMsgID(buf, dm.msgID)
 	serializePadding(buf)
 
@@ -332,6 +332,10 @@ func serializeIDString(buf *bytes.Buffer, is IDString) *bytes.Buffer {
 
 func serializePubNick(buf *bytes.Buffer, pn PubNick) *bytes.Buffer {
 	return contextualSerializeHelper("public nickname", buf, pn)
+}
+
+func serializeMsgStatus(buf *bytes.Buffer, msgStatus msgStatus) *bytes.Buffer {
+	return serializeByte(buf, byte(msgStatus))
 }
 
 func serializeMsgID(buf *bytes.Buffer, id uint64) *bytes.Buffer {

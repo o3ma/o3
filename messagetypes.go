@@ -420,8 +420,27 @@ type GroupMemberLeftMessage struct {
 	messageHeader
 }
 
+// NewTextMessage returns a TextMessage ready to be encrypted
+func NewDeliveryReceiptMessage(sc *SessionContext, recipient string, msgID uint64, msgStatus msgStatus) (DeliveryReceiptMessage, error) {
+	recipientID := NewIDString(recipient)
+
+	dm := DeliveryReceiptMessage{
+		messageHeader{
+			sender:    sc.ID.ID,
+			recipient: recipientID,
+			id:        NewMsgID(),
+			time:      time.Now(),
+			pubNick:   sc.ID.Nick,
+		},
+		deliveryReceiptMessageBody{
+			msgID:  msgID,
+			status: msgStatus},
+	}
+	return dm, nil
+}
+
 type deliveryReceiptMessageBody struct {
-	status byte
+	status msgStatus
 	msgID  uint64
 }
 
@@ -438,11 +457,11 @@ func (dm DeliveryReceiptMessage) GetPrintableContent() string {
 
 //Serialize returns a fully serialized byte slice of a SeliveryReceiptMessage
 func (dm DeliveryReceiptMessage) Serialize() []byte {
-	return serializeTextMsg(dm)
+	return serializeDeliveryReceiptMsg(dm).Bytes()
 }
 
 // Status returns the messages status
-func (dm DeliveryReceiptMessage) Status() byte {
+func (dm DeliveryReceiptMessage) Status() msgStatus {
 	return dm.status
 }
 
