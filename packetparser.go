@@ -34,6 +34,14 @@ func parseAckPkt(buf *bytes.Buffer) (ap ackPacket) {
 	return
 }
 
+func parseEchoPkt(buf *bytes.Buffer) (ep echoPacket) {
+
+	ep.PktType = parsePktType(buf)
+	ep.Counter = parseUint64(buf)
+
+	return
+}
+
 func parseDeliveryReceipt(buf *bytes.Buffer) deliveryReceiptMessageBody {
 	// Strip padding
 	// TODO: this should be a helper function

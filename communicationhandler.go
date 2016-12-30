@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"time"
 )
 
 func receiveHelper(reader io.Reader, n int) *bytes.Buffer {
@@ -95,6 +96,8 @@ func (sc *SessionContext) receiveLoop() {
 			sc.receiveMsgChan <- rmsg
 		case ackPacket:
 			// ok cool. nothing to do.
+		case echoPacket:
+			sc.echoCounter = pkt.Counter
 		case connEstPacket:
 			//Info.Printf("Got Message: %#v\n", pkt)
 			go sc.sendLoop()
@@ -108,8 +111,25 @@ func (sc *SessionContext) receiveLoop() {
 }
 
 func (sc *SessionContext) sendLoop() {
-	for msg := range sc.sendMsgChan {
-		sc.dispatchMessage(sc.connection, msg)
+	// Write a new echo pkt to the echPktChan every 3 minutes
+	echoPktChan := make(chan echoPacket)
+	go func() {
+		timeChan := time.Tick(3 * time.Minute)
+		for _ = range timeChan {
+			ep := echoPacket{PktType: ECHOMSG,
+				Counter: sc.echoCounter}
+			echoPktChan <- ep
+		}
+	}()
+
+	for {
+		select {
+		case msg := <-sc.sendMsgChan:
+			sc.dispatchMessage(sc.connection, msg)
+		// Read from echo channel and dispatch (happens every 3 min)
+		case echoPkt := <-echoPktChan:
+			sc.dispatchEchoMsg(sc.connection, echoPkt)
+		}
 	}
 }
 

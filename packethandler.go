@@ -114,6 +114,9 @@ func (sc *SessionContext) handleClientServerMsg(buf *bytes.Buffer) interface{} {
 	case SERVERACK:
 		// It is an ACK for a message we sent
 		return parseAckPkt(bytes.NewBuffer(plaintext))
+	case ECHOMSG:
+		// It is an echo reply
+		return parseEchoPkt(bytes.NewBuffer(plaintext))
 	case CONNESTABLISHED:
 		// We have received all enqueued messages
 		return parseConnEstPkt(bytes.NewBuffer(plaintext))

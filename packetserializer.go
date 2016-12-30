@@ -162,6 +162,16 @@ func serializeAckPkt(ap ackPacket) *bytes.Buffer {
 	return buf
 }
 
+func serializeEchoPkt(ep echoPacket) *bytes.Buffer {
+
+	buf := new(bytes.Buffer)
+
+	serializePktType(buf, ep.PktType)
+	serializeUint64(buf, ep.Counter)
+
+	return buf
+}
+
 func serializeDeliveryReceiptMsg(dm DeliveryReceiptMessage) *bytes.Buffer {
 
 	buf := new(bytes.Buffer)

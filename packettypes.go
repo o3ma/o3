@@ -9,6 +9,8 @@ const (
 	SENDINGMSG pktType = 0x1
 	// DELIVERINGMSG is the packet type of a message packet from server to client
 	DELIVERINGMSG pktType = 0x2
+	// ECHOMSG is the packet type of a echo reply
+	ECHOMSG pktType = 0x80
 	// SERVERACK is the packet type of a server ack for a message sent by the client
 	SERVERACK pktType = 0x81
 	// CLIENTACK is the packet type of a client ack for a message delivered by the server
@@ -37,6 +39,11 @@ type ackPacket struct {
 	PktType  pktType
 	SenderID IDString
 	MsgID    uint64
+}
+
+type echoPacket struct {
+	PktType pktType
+	Counter uint64
 }
 
 type connEstPacket struct {

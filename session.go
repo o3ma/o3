@@ -22,6 +22,7 @@ type SessionContext struct {
 	connection     net.Conn
 	receiveMsgChan chan ReceivedMsg
 	sendMsgChan    chan Message
+	echoCounter    uint64
 }
 
 // NewSessionContext returns a new SessionContext
@@ -39,6 +40,8 @@ func NewSessionContext(ID ThreemaID) SessionContext {
 	}
 	copy(sc.clientSPK[:], (*pk)[:])
 	copy(sc.clientSSK[:], (*sk)[:])
+
+	sc.echoCounter = 0
 
 	return sc
 }

@@ -104,6 +104,21 @@ func (sc *SessionContext) dispatchAckMsg(wr io.Writer, mp messagePacket) {
 	writeHelper(wr, buf)
 }
 
+func (sc *SessionContext) dispatchEchoMsg(wr io.Writer, oldEchoPacket echoPacket) {
+	ep := echoPacket{
+		Counter: oldEchoPacket.Counter + 1}
+	serializedEchoPkt := serializeEchoPkt(ep)
+
+	sc.clientNonce.increaseCounter()
+	epCipherText := box.Seal(nil, serializedEchoPkt.Bytes(), sc.clientNonce.bytes(), &sc.serverSPK, &sc.clientSSK)
+
+	buf := new(bytes.Buffer)
+	binary.Write(buf, binary.LittleEndian, uint16(len(epCipherText)))
+	binary.Write(buf, binary.LittleEndian, epCipherText)
+
+	writeHelper(wr, buf)
+}
+
 func (sc *SessionContext) dispatchMessage(wr io.Writer, m Message) {
 	mh := m.header()
 
