@@ -162,6 +162,17 @@ func serializeAckPkt(ap ackPacket) *bytes.Buffer {
 	return buf
 }
 
+func serializeTextMsg(dm DeliveryReceiptMessage) *bytes.Buffer {
+
+	buf := new(bytes.Buffer)
+	serializeMsgType(buf, DELIVERYRECEIPT)
+	serializeByte(buf, dm.status)
+	serializeMsgID(buf, dm.msgID)
+	serializePadding(buf)
+
+	return buf
+}
+
 func serializeClientHelloPkt(ch clientHelloPacket) *bytes.Buffer {
 
 	buf := new(bytes.Buffer)

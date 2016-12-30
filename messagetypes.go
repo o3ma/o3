@@ -421,7 +421,7 @@ func (dm DeliveryReceiptMessage) GetPrintableContent() string {
 
 //Serialize returns a fully serialized byte slice of a SeliveryReceiptMessage
 func (dm DeliveryReceiptMessage) Serialize() []byte {
-	panic("Not Implemented")
+	return serializeTextMsg(dm)
 }
 
 // Status returns the messages status
