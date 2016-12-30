@@ -121,6 +121,22 @@ func (mh messageHeader) Sender() IDString {
 	return mh.sender
 }
 
+func (mh messageHeader) Recipient() IDString {
+	return mh.recipient
+}
+
+func (mh messageHeader) ID() uint64 {
+	return mh.id
+}
+
+func (mh messageHeader) Time() time.Time {
+	return mh.time
+}
+
+func (mh messageHeader) PubNick() PubNick {
+	return mh.pubNick
+}
+
 func (mh messageHeader) header() messageHeader {
 	return mh
 }
@@ -155,8 +171,8 @@ func (tn TypingNotificationMessage) Serialize() []byte {
 	return serializeTypingNotification(tn).Bytes()
 }
 
-// newTextMessage returns a TextMessage ready to be encrypted
-func newTextMessage(sc *SessionContext, recipient string, text string) (TextMessage, error) {
+// NewTextMessage returns a TextMessage ready to be encrypted
+func NewTextMessage(sc *SessionContext, recipient string, text string) (TextMessage, error) {
 	recipientID := NewIDString(recipient)
 
 	tm := TextMessage{
@@ -172,8 +188,8 @@ func newTextMessage(sc *SessionContext, recipient string, text string) (TextMess
 	return tm, nil
 }
 
-// newImageMessage returns a ImageMessage ready to be encrypted
-func newImageMessage(sc *SessionContext, recipient string, filename string) (ImageMessage, error) {
+// NewImageMessage returns a ImageMessage ready to be encrypted
+func NewImageMessage(sc *SessionContext, recipient string, filename string) (ImageMessage, error) {
 	recipientID := NewIDString(recipient)
 
 	im := ImageMessage{
@@ -233,8 +249,8 @@ func (im ImageMessage) Serialize() []byte {
 	return serializeImageMsg(im).Bytes()
 }
 
-// newAudioMessage returns a ImageMessage ready to be encrypted
-func newAudioMessage(sc *SessionContext, recipient string, filename string) (AudioMessage, error) {
+// NewAudioMessage returns a ImageMessage ready to be encrypted
+func NewAudioMessage(sc *SessionContext, recipient string, filename string) (AudioMessage, error) {
 	recipientID := NewIDString(recipient)
 
 	im := AudioMessage{
@@ -371,7 +387,8 @@ func (im *GroupImageMessage) SetImageData(filename string) error {
 	return err
 }
 
-func newGroupMemberLeftMessages(sc *SessionContext, group Group) []GroupMemberLeftMessage {
+// NewGroupMemberLeftMessages returns a slice of GroupMemberLeftMessages ready to be encrypted
+func NewGroupMemberLeftMessages(sc *SessionContext, group Group) []GroupMemberLeftMessage {
 	gml := make([]GroupMemberLeftMessage, len(group.Members))
 
 	for i := 0; i < len(group.Members); i++ {
@@ -445,7 +462,8 @@ func (gmh groupManageMessageHeader) GroupID() [8]byte {
 	return gmh.groupID
 }
 
-func newGroupManageSetMembersMessages(sc *SessionContext, group Group) []GroupManageSetMembersMessage {
+// NewGroupManageSetMembersMessages returns a slice of GroupManageSetMembersMessages ready to be encrypted
+func NewGroupManageSetMembersMessages(sc *SessionContext, group Group) []GroupManageSetMembersMessage {
 	gms := make([]GroupManageSetMembersMessage, len(group.Members))
 
 	for i := 0; i < len(group.Members); i++ {
@@ -488,7 +506,8 @@ func (gmm GroupManageSetMembersMessage) Serialize() []byte {
 	return serializeGroupManageSetMembersMessage(gmm).Bytes()
 }
 
-func newGroupManageSetNameMessages(sc *SessionContext, group Group) []GroupManageSetNameMessage {
+// NewGroupManageSetNameMessages returns a slice of GroupMenageSetNameMessages ready to be encrypted
+func NewGroupManageSetNameMessages(sc *SessionContext, group Group) []GroupManageSetNameMessage {
 	gms := make([]GroupManageSetNameMessage, len(group.Members))
 
 	for i := 0; i < len(group.Members); i++ {
