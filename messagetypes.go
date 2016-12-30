@@ -121,6 +121,22 @@ func (mh messageHeader) Sender() IDString {
 	return mh.sender
 }
 
+func (mh messageHeader) Recipient() IDString {
+	return mh.recipient
+}
+
+func (mh messageHeader) ID() uint64 {
+	return mh.id
+}
+
+func (mh messageHeader) Time() time.Time {
+	return mh.time
+}
+
+func (mh messageHeader) PubNick() PubNick {
+	return mh.pubNick
+}
+
 func (mh messageHeader) header() messageHeader {
 	return mh
 }
