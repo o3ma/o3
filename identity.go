@@ -131,7 +131,6 @@ func encryptID(id, pk, password []byte) (string, error) {
 			ret += string(c)
 		}
 	}
-	fmt.Printf(ret)
 	return ret, nil
 }
 
