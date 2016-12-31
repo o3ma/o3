@@ -3,7 +3,6 @@ package o3
 import (
 	"crypto/rand"
 	"encoding/base64"
-	"fmt"
 
 	"errors"
 
@@ -67,10 +66,6 @@ func (tr ThreemaRest) CreateIdentity() (ThreemaID, error) {
 	if !*finalResult.Success {
 		panic("Server responded with error!")
 	}
-
-	fmt.Printf("New Identity: %s Server: %s\n", *finalResult.Identity, *finalResult.ServerGroup)
-	fmt.Printf("PrivateKey: %x\n", *privateKey)
-	fmt.Printf("PublicKey: %x\n", *publicKey)
 
 	newID := ThreemaID{
 		ID:   NewIDString(*finalResult.Identity),
