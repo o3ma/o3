@@ -1,4 +1,4 @@
-// Package o3 handler functions for invididual incoming packets. All functions here are called from
+// Package o3 handler functions for individual incoming packets. All functions here are called from
 // communicationhandler. Functions in here use packetparser to parse packets into their
 // respective structs. Any action required upon receiving a specific packet is then per-
 // formed within its handler like updating nonces and storing keys in the session context.

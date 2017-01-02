@@ -344,7 +344,7 @@ func serializePubNick(buf *bytes.Buffer, pn PubNick) *bytes.Buffer {
 	return contextualSerializeHelper("public nickname", buf, pn)
 }
 
-func serializeMsgStatus(buf *bytes.Buffer, msgStatus msgStatus) *bytes.Buffer {
+func serializeMsgStatus(buf *bytes.Buffer, msgStatus MsgStatus) *bytes.Buffer {
 	return serializeByte(buf, byte(msgStatus))
 }
 

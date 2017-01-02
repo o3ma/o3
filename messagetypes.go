@@ -54,17 +54,17 @@ const (
 	//GROUPSETIMAGEMESSAGE msgType = 76
 )
 
-type msgStatus uint8
+type MsgStatus uint8
 
 const (
 	// MSGDELIVERED indicates message was received by peer
-	MSGDELIVERED msgStatus = 0x1
+	MSGDELIVERED MsgStatus = 0x1
 	// MSGREAD indicates message was read by peer
-	MSGREAD msgStatus = 0x2
+	MSGREAD MsgStatus = 0x2
 	// MSGAPPROVED indicates message was approved (thumb up) by peer
-	MSGAPPROVED msgStatus = 0x3
+	MSGAPPROVED MsgStatus = 0x3
 	// MSGDISAPPROVED indicates message was disapproved (thumb down) by peer
-	MSGDISAPPROVED msgStatus = 0x4
+	MSGDISAPPROVED MsgStatus = 0x4
 )
 
 type msgFlags struct {
@@ -421,7 +421,7 @@ type GroupMemberLeftMessage struct {
 }
 
 // NewDeliveryReceiptMessage returns a TextMessage ready to be encrypted
-func NewDeliveryReceiptMessage(sc *SessionContext, recipient string, msgID uint64, msgStatus msgStatus) (DeliveryReceiptMessage, error) {
+func NewDeliveryReceiptMessage(sc *SessionContext, recipient string, msgID uint64, msgStatus MsgStatus) (DeliveryReceiptMessage, error) {
 	recipientID := NewIDString(recipient)
 
 	dm := DeliveryReceiptMessage{
@@ -440,7 +440,7 @@ func NewDeliveryReceiptMessage(sc *SessionContext, recipient string, msgID uint6
 }
 
 type deliveryReceiptMessageBody struct {
-	status msgStatus
+	status MsgStatus
 	msgID  uint64
 }
 
@@ -461,7 +461,7 @@ func (dm DeliveryReceiptMessage) Serialize() []byte {
 }
 
 // Status returns the messages status
-func (dm DeliveryReceiptMessage) Status() msgStatus {
+func (dm DeliveryReceiptMessage) Status() MsgStatus {
 	return dm.status
 }
 

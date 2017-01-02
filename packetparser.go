@@ -49,7 +49,7 @@ func parseDeliveryReceipt(buf *bytes.Buffer) deliveryReceiptMessageBody {
 	buf.Truncate(buf.Len() - paddingLen)
 
 	dm := deliveryReceiptMessageBody{
-		status: msgStatus(parseByte(buf)),
+		status: MsgStatus(parseByte(buf)),
 		msgID:  parseUint64(buf)}
 	return dm
 }
