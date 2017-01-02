@@ -10,6 +10,7 @@ package o3
 import (
 	"bytes"
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -33,6 +34,36 @@ type ReceivedMsg struct {
 	Err error
 }
 
+// preflightCheck quickly tests the ID and returns an error if it's empty
+func (sc *SessionContext) preflightCheck() error {
+
+	fmt.Printf("len idstring: %d\n", len(sc.ID.String()))
+	check := false
+	for _, b := range sc.ID.ID {
+		if b != 0x0 {
+			check = true
+			break
+		}
+	}
+	if !check {
+		return errors.New("cannot connect using empty ID")
+	}
+
+	check = false
+	fmt.Printf("%#v\n", sc.ID.LSK)
+	for _, b := range sc.ID.LSK {
+		if b != 0x0 {
+			check = true
+			break
+		}
+	}
+	if !check {
+		return errors.New("cannot connect using empty secret key")
+	}
+
+	return nil
+}
+
 // Run receives all enqueued Messages and writes the results
 // to the channel passed as argument
 func (sc *SessionContext) Run() (chan<- Message, <-chan ReceivedMsg, error) {
@@ -42,6 +73,11 @@ func (sc *SessionContext) Run() (chan<- Message, <-chan ReceivedMsg, error) {
 			handlerPanicHandler("Receive Messages", r)
 		}
 	}()
+
+	//check if we have an ID and LSK to work with
+	if err := sc.preflightCheck(); err != nil {
+		return nil, nil, err
+	}
 
 	var err error
 	sc.connection, err = net.Dial("tcp", "g-33.0.threema.ch:5222")
