@@ -1,4 +1,4 @@
-//Packate o3 central communication unit responsible for complete exchanges (like handshake and subsequent
+//Package o3 central communication unit responsible for complete exchanges (like handshake and subsequent
 //message reception). Uses functions in packethandler and packetdispatcher to deal with incoming
 //and outgoing messages. Errors in underlying functions bubble up as panics and have to be re-
 //covered here, converted to go errors and returned.
