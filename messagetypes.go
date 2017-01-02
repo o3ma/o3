@@ -54,6 +54,7 @@ const (
 	//GROUPSETIMAGEMESSAGE msgType = 76
 )
 
+// MsgStatus represents the single-byte status field of DeliveryReceiptMessage
 type MsgStatus uint8
 
 const (
