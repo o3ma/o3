@@ -43,10 +43,7 @@ func parseEchoPkt(buf *bytes.Buffer) (ep echoPacket) {
 }
 
 func parseDeliveryReceipt(buf *bytes.Buffer) deliveryReceiptMessageBody {
-	// Strip padding
-	// TODO: this should be a helper function
-	paddingLen := int(buf.Bytes()[buf.Len()-1])
-	buf.Truncate(buf.Len() - paddingLen)
+	stripPadding(buf)
 
 	dm := deliveryReceiptMessageBody{
 		status: MsgStatus(parseByte(buf)),
@@ -88,6 +85,11 @@ func parseAuthPkt(buf *bytes.Buffer) (ap authPacket) {
 
 	ap.Ciphertext = parse144bytes(buf)
 	return
+}
+
+func stripPadding(buf *bytes.Buffer) {
+	paddingLen := int(buf.Bytes()[buf.Len()-1])
+	buf.Truncate(buf.Len() - paddingLen)
 }
 
 func parseUint8(buf *bytes.Buffer) uint8 {
@@ -140,10 +142,10 @@ func parseUint64(buf *bytes.Buffer) uint64 {
 	return ret
 }
 
-func parseMessageType(buf *bytes.Buffer) msgType {
+func parseMessageType(buf *bytes.Buffer) MsgType {
 	msgT := parseUint8(buf)
 	//TODO check valid range
-	return msgType(msgT)
+	return MsgType(msgT)
 }
 
 func parsePktType(buf *bytes.Buffer) pktType {
@@ -201,19 +203,13 @@ func parseMessage(buf *bytes.Buffer) []byte {
 }
 
 func parseTextMessage(buf *bytes.Buffer) textMessageBody {
-	// Strip padding
-	// TODO: this should be a helper function
-	paddingLen := int(buf.Bytes()[buf.Len()-1])
-	buf.Truncate(buf.Len() - paddingLen)
+	stripPadding(buf)
 
 	return textMessageBody{text: string(buf.Bytes())}
 }
 
 func parseImageMessage(buf *bytes.Buffer) imageMessageBody {
-	// Strip padding
-	// TODO: this should be a helper function
-	paddingLen := int(buf.Bytes()[buf.Len()-1])
-	buf.Truncate(buf.Len() - paddingLen)
+	stripPadding(buf)
 
 	im := imageMessageBody{
 		BlobID: parseBlobID(buf),
@@ -229,10 +225,7 @@ func parseTypingNotification(buf *bytes.Buffer) (tn typingNotificationBody) {
 }
 
 func parseAudioMessage(buf *bytes.Buffer) audioMessageBody {
-	// Strip padding
-	// TODO: this should be a helper function
-	paddingLen := int(buf.Bytes()[buf.Len()-1])
-	buf.Truncate(buf.Len() - paddingLen)
+	stripPadding(buf)
 
 	am := audioMessageBody{
 		Duration: parseUint16(buf),
@@ -244,10 +237,7 @@ func parseAudioMessage(buf *bytes.Buffer) audioMessageBody {
 }
 
 func parseGroupImageMessage(buf *bytes.Buffer) groupImageMessageBody {
-	// Strip padding
-	// TODO: this should be a helper function
-	paddingLen := int(buf.Bytes()[buf.Len()-1])
-	buf.Truncate(buf.Len() - paddingLen)
+	stripPadding(buf)
 
 	gim := groupImageMessageBody{
 		BlobID: parseBlobID(buf),
@@ -265,19 +255,13 @@ func parseGroupMessageHeader(buf *bytes.Buffer) groupMessageHeader {
 }
 
 func parseGroupManageSetNameMessage(buf *bytes.Buffer) groupManageSetNameMessageBody {
-	// Strip padding
-	// TODO: this should be a helper function
-	paddingLen := int(buf.Bytes()[buf.Len()-1])
-	buf.Truncate(buf.Len() - paddingLen)
+	stripPadding(buf)
 
 	return groupManageSetNameMessageBody{groupName: string(buf.Bytes())}
 }
 
 func parseGroupManageSetMembersMessage(buf *bytes.Buffer) groupManageSetMembersMessageBody {
-	// Strip padding
-	// TODO: this should be a helper function
-	paddingLen := int(buf.Bytes()[buf.Len()-1])
-	buf.Truncate(buf.Len() - paddingLen)
+	stripPadding(buf)
 
 	if (buf.Len() % 8) != 0 {
 		panic("List of group members corrupt. Length is no multiple of 8.")
