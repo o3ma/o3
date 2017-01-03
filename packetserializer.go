@@ -291,7 +291,7 @@ func serializePktType(buf *bytes.Buffer, pktT pktType) *bytes.Buffer {
 	return serializeUint32(buf, uint32(pktT))
 }
 
-func serializeMsgType(buf *bytes.Buffer, msgT msgType) *bytes.Buffer {
+func serializeMsgType(buf *bytes.Buffer, msgT MsgType) *bytes.Buffer {
 	return serializeUint8(uint8(msgT), buf)
 }
 

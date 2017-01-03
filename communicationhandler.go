@@ -1,7 +1,7 @@
-//Package o3 central communication unit responsible for complete exchanges (like handshake and subsequent
-//message reception). Uses functions in packethandler and packetdispatcher to deal with incoming
-//and outgoing messages. Errors in underlying functions bubble up as panics and have to be re-
-//covered here, converted to go errors and returned.
+// Package o3 central communication unit responsible for complete exchanges (like handshake and subsequent
+// message reception). Uses functions in packethandler and packetdispatcher to deal with incoming
+// and outgoing messages. Errors in underlying functions bubble up as panics and have to be re-
+// covered here, converted to go errors and returned.
 package o3
 
 import (
@@ -148,8 +148,8 @@ func (sc *SessionContext) sendLoop() {
 	echoPktChan := make(chan echoPacket)
 	go func() {
 		timeChan := time.Tick(3 * time.Minute)
-		for _ = range timeChan {
-			ep := echoPacket{PktType: ECHOMSG,
+		for range timeChan {
+			ep := echoPacket{PktType: echoMsg,
 				Counter: sc.echoCounter}
 			echoPktChan <- ep
 		}

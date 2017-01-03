@@ -89,7 +89,7 @@ func (sc *SessionContext) dispatchAuthMsg(wr io.Writer) {
 
 func (sc *SessionContext) dispatchAckMsg(wr io.Writer, mp messagePacket) {
 	ackP := ackPacket{
-		PktType:  CLIENTACK,
+		PktType:  clientAck,
 		SenderID: mp.Sender,
 		MsgID:    mp.ID}
 	serializedAckPkt := serializeAckPkt(ackP)
@@ -138,7 +138,7 @@ func (sc *SessionContext) dispatchMessage(wr io.Writer, m Message) {
 	msgCipherText := box.Seal(nil, m.Serialize(), randNonce.bytes(), &recipient.LPK, &sc.ID.LSK)
 
 	messagePkt := messagePacket{
-		PktType:    SENDINGMSG,
+		PktType:    sendingMsg,
 		Sender:     mh.sender,
 		Recipient:  mh.recipient,
 		ID:         mh.id,

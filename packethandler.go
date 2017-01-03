@@ -89,7 +89,7 @@ func (sc *SessionContext) handleClientServerMsg(buf *bytes.Buffer) interface{} {
 	binary.Read(bytes.NewReader(plaintext[:4]), binary.LittleEndian, &pt)
 
 	switch pt {
-	case DELIVERINGMSG:
+	case deliveringMsg:
 		// It is an e2e message!
 		msgPkt := parseMsgPkt(bytes.NewBuffer(plaintext))
 		// Find the sender in our contacts, because we need their public key
@@ -111,13 +111,13 @@ func (sc *SessionContext) handleClientServerMsg(buf *bytes.Buffer) interface{} {
 		}
 
 		return msgPkt
-	case SERVERACK:
+	case serverAck:
 		// It is an ACK for a message we sent
 		return parseAckPkt(bytes.NewBuffer(plaintext))
-	case ECHOMSG:
+	case echoMsg:
 		// It is an echo reply
 		return parseEchoPkt(bytes.NewBuffer(plaintext))
-	case CONNESTABLISHED:
+	case connEstablished:
 		// We have received all enqueued messages
 		return parseConnEstPkt(bytes.NewBuffer(plaintext))
 	default:

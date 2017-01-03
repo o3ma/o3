@@ -9,65 +9,40 @@ import (
 	"errors"
 )
 
-type msgType uint8
+// MsgType determines the type of message that is sent or received. Users usually
+// won't use this directly and rather use message generator functions.
+type MsgType uint8
 
+// MsgType mock enum
 const (
-	//TEXTMESSAGE is the msgType used for text messages
-	TEXTMESSAGE msgType = 0x1
-
-	//IMAGEMESSAGE is the msgType used for image messages
-	IMAGEMESSAGE msgType = 0x2
-
-	//AUDIOMESSAGE is the msgType used for audio messages
-	AUDIOMESSAGE msgType = 0x14
-
-	//POLLMESSAGE is the msgType used for poll messages
-	POLLMESSAGE msgType = 0x15
-
-	//LOCATIONMESSAGE is the msgType used for location messages
-	LOCATIONMESSAGE msgType = 0x16
-
-	//FILEMESSAGE is the msgType used for file messages
-	FILEMESSAGE msgType = 0x17
-
-	//GROUPTEXTMESSAGE is the msgType used for group text messages
-	GROUPTEXTMESSAGE msgType = 0x41
-
-	//GROUPIMAGEMESSAGE is the msgType used for group image messages
-	GROUPIMAGEMESSAGE msgType = 0x43
-
-	//GROUPSETMEMEBERSMESSAGE is the msgType used for set group member messages
-	GROUPSETMEMEBERSMESSAGE msgType = 0x4A
-
-	//GROUPSETNAMEMESSAGE is the msgType used for set group name messages
-	GROUPSETNAMEMESSAGE msgType = 0x4B
-
-	//GROUPMEMBERLEFTMESSAGE is the msgType used for group member left messages
-	GROUPMEMBERLEFTMESSAGE msgType = 0x4C
-
-	//DELIVERYRECEIPT is the msgType used for delivery receipts sent by the threema servers
-	DELIVERYRECEIPT msgType = 0x80
-
-	//TYPINGNOTIFICATION is the msgType used for typing notifiaction messages
-	TYPINGNOTIFICATION msgType = 0x90
-
+	TEXTMESSAGE             MsgType = 0x1  //indicates a text message
+	IMAGEMESSAGE            MsgType = 0x2  //indicates a image message
+	AUDIOMESSAGE            MsgType = 0x14 //indicates a audio message
+	POLLMESSAGE             MsgType = 0x15 //indicates a poll message
+	LOCATIONMESSAGE         MsgType = 0x16 //indicates a location message
+	FILEMESSAGE             MsgType = 0x17 //indicates a file message
+	GROUPTEXTMESSAGE        MsgType = 0x41 //indicates a group text message
+	GROUPIMAGEMESSAGE       MsgType = 0x43 //indicates a group image message
+	GROUPSETMEMEBERSMESSAGE MsgType = 0x4A //indicates a set group member message
+	GROUPSETNAMEMESSAGE     MsgType = 0x4B //indicates a set group name message
+	GROUPMEMBERLEFTMESSAGE  MsgType = 0x4C //indicates a group member left message
+	DELIVERYRECEIPT         MsgType = 0x80 //indicates a delivery receipt sent by the threema servers
+	TYPINGNOTIFICATION      MsgType = 0x90 //indicates a typing notifiaction message
 	//GROUPSETIMAGEMESSAGE msgType = 76
 )
 
 // MsgStatus represents the single-byte status field of DeliveryReceiptMessage
 type MsgStatus uint8
 
+//MsgStatus mock enum
 const (
-	// MSGDELIVERED indicates message was received by peer
-	MSGDELIVERED MsgStatus = 0x1
-	// MSGREAD indicates message was read by peer
-	MSGREAD MsgStatus = 0x2
-	// MSGAPPROVED indicates message was approved (thumb up) by peer
-	MSGAPPROVED MsgStatus = 0x3
-	// MSGDISAPPROVED indicates message was disapproved (thumb down) by peer
-	MSGDISAPPROVED MsgStatus = 0x4
+	MSGDELIVERED   MsgStatus = 0x1 //indicates message was received by peer
+	MSGREAD        MsgStatus = 0x2 //indicates message was read by peer
+	MSGAPPROVED    MsgStatus = 0x3 //indicates message was approved (thumb up) by peer
+	MSGDISAPPROVED MsgStatus = 0x4 //indicates message was disapproved (thumb down) by peer
 )
 
+//TODO: figure these out
 type msgFlags struct {
 	PushMessage                    bool
 	NoQueuing                      bool
@@ -138,9 +113,12 @@ func (mh messageHeader) PubNick() PubNick {
 	return mh.pubNick
 }
 
+//TODO: WAT?
 func (mh messageHeader) header() messageHeader {
 	return mh
 }
+
+//--------8<--------8<--------8<--------8<--------8<--------8<--------8<--------8<--------8<----
 
 type textMessageBody struct {
 	text string
@@ -150,26 +128,6 @@ type textMessageBody struct {
 type TextMessage struct {
 	messageHeader
 	textMessageBody
-}
-
-// Text returns the message text
-func (tm TextMessage) Text() string {
-	return tm.text
-}
-
-// String returns the message text as string
-func (tm TextMessage) String() string {
-	return tm.text
-}
-
-//Serialize returns a fully serialized byte slice of a TextMessage
-func (tm TextMessage) Serialize() []byte {
-	return serializeTextMsg(tm).Bytes()
-}
-
-//Serialize returns a fully serialized byte slice of a TypingNotificationMessage
-func (tn TypingNotificationMessage) Serialize() []byte {
-	return serializeTypingNotification(tn).Bytes()
 }
 
 // NewTextMessage returns a TextMessage ready to be encrypted
@@ -187,6 +145,41 @@ func NewTextMessage(sc *SessionContext, recipient string, text string) (TextMess
 		textMessageBody{text: text},
 	}
 	return tm, nil
+}
+
+// Text returns the message text
+func (tm TextMessage) Text() string {
+	return tm.text
+}
+
+// String returns the message text as string
+func (tm TextMessage) String() string {
+	return tm.Text()
+}
+
+//Serialize returns a fully serialized byte slice of a TextMessage
+func (tm TextMessage) Serialize() []byte {
+	return serializeTextMsg(tm).Bytes()
+}
+
+//Serialize returns a fully serialized byte slice of a TypingNotificationMessage
+func (tn TypingNotificationMessage) Serialize() []byte {
+	return serializeTypingNotification(tn).Bytes()
+}
+
+//--------8<--------8<--------8<--------8<--------8<--------8<--------8<--------8<--------8<----
+
+//ImageMessage represents an image message as sent e2e encrypted to other threema users
+type ImageMessage struct {
+	messageHeader
+	imageMessageBody
+}
+
+type imageMessageBody struct {
+	BlobID   [16]byte
+	ServerID byte
+	Size     uint32
+	Nonce    nonce
 }
 
 // NewImageMessage returns a ImageMessage ready to be encrypted
@@ -208,19 +201,6 @@ func NewImageMessage(sc *SessionContext, recipient string, filename string) (Ima
 		return ImageMessage{}, err
 	}
 	return im, nil
-}
-
-type imageMessageBody struct {
-	BlobID   [16]byte
-	ServerID byte
-	Size     uint32
-	Nonce    nonce
-}
-
-//ImageMessage represents an image message as sent e2e encrypted to other threema users
-type ImageMessage struct {
-	messageHeader
-	imageMessageBody
 }
 
 // GetPrintableContent returns a printable represantion of a ImageMessage.
@@ -250,6 +230,22 @@ func (im ImageMessage) Serialize() []byte {
 	return serializeImageMsg(im).Bytes()
 }
 
+//--------8<--------8<--------8<--------8<--------8<--------8<--------8<--------8<--------8<----
+
+//AudioMessage represents an image message as sent e2e encrypted to other threema users
+type AudioMessage struct {
+	messageHeader
+	audioMessageBody
+}
+
+type audioMessageBody struct {
+	Duration uint16 // The audio clips duration in seconds
+	BlobID   [16]byte
+	ServerID byte
+	Size     uint32
+	Key      [32]byte
+}
+
 // NewAudioMessage returns a ImageMessage ready to be encrypted
 func NewAudioMessage(sc *SessionContext, recipient string, filename string) (AudioMessage, error) {
 	recipientID := NewIDString(recipient)
@@ -269,20 +265,6 @@ func NewAudioMessage(sc *SessionContext, recipient string, filename string) (Aud
 		return AudioMessage{}, err
 	}
 	return im, nil
-}
-
-type audioMessageBody struct {
-	Duration uint16 // The audio clips duration in seconds
-	BlobID   [16]byte
-	ServerID byte
-	Size     uint32
-	Key      [32]byte
-}
-
-//AudioMessage represents an image message as sent e2e encrypted to other threema users
-type AudioMessage struct {
-	messageHeader
-	audioMessageBody
 }
 
 // GetPrintableContent returns a printable represantion of an AudioMessage
@@ -315,8 +297,7 @@ func (am AudioMessage) Serialize() []byte {
 	return serializeAudioMsg(am).Bytes()
 }
 
-// TYPING NOTIFICATIONS
-////////////////////////////////////////////////////////////////
+//--------8<--------8<--------8<--------8<--------8<--------8<--------8<--------8<--------8<----
 
 //TypingNotificationMessage represents a typing notifiaction message
 type TypingNotificationMessage struct {
@@ -328,23 +309,7 @@ type typingNotificationBody struct {
 	OnOff byte
 }
 
-// GROUP MESSAGES
-////////////////////////////////////////////////////////////////
-
-type groupMessageHeader struct {
-	creatorID IDString
-	groupID   [8]byte
-}
-
-// GroupID returns the ID of the group the message belongs to
-func (gmh groupMessageHeader) GroupID() [8]byte {
-	return gmh.groupID
-}
-
-// GroupCreator returns the ID of the groups admin/creator as string
-func (gmh groupMessageHeader) GroupCreator() string {
-	return gmh.creatorID.String()
-}
+//--------8<--------8<--------8<--------8<--------8<--------8<--------8<--------8<--------8<----
 
 //GroupTextMessage represents a group text message as sent e2e encrypted to other threema users
 type GroupTextMessage struct {
@@ -352,11 +317,26 @@ type GroupTextMessage struct {
 	TextMessage
 }
 
+type groupMessageHeader struct {
+	creatorID IDString
+	groupID   [8]byte
+}
+
 type groupImageMessageBody struct {
 	BlobID   [16]byte
 	ServerID byte
 	Size     uint32
 	Key      [32]byte
+}
+
+// GroupCreator returns the ID of the groups admin/creator as string
+func (gmh groupMessageHeader) GroupCreator() string {
+	return gmh.creatorID.String()
+}
+
+// GroupID returns the ID of the group the message belongs to
+func (gmh groupMessageHeader) GroupID() [8]byte {
+	return gmh.groupID
 }
 
 //GroupImageMessage represents a group image message as sent e2e encrypted to other threema users

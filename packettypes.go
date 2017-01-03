@@ -5,20 +5,20 @@ import "time"
 type pktType uint32
 
 const (
-	// SENDINGMSG is the packet type of a message packet from client to server
-	SENDINGMSG pktType = 0x1
-	// DELIVERINGMSG is the packet type of a message packet from server to client
-	DELIVERINGMSG pktType = 0x2
-	// ECHOMSG is the packet type of a echo reply
-	ECHOMSG pktType = 0x80
-	// SERVERACK is the packet type of a server ack for a message sent by the client
-	SERVERACK pktType = 0x81
-	// CLIENTACK is the packet type of a client ack for a message delivered by the server
-	CLIENTACK pktType = 0x82
-	// CONNESTABLISHED is the packet type of a pkt send by the server when all MSGs have been delivered
-	CONNESTABLISHED pktType = 0xd0
-	// MSGHEADERLENGTH is the length of a ThreemaMessageHeader
-	MSGHEADERLENGTH uint8 = 64
+	// sendingMsg is the packet type of a message packet from client to server
+	sendingMsg pktType = 0x1
+	// deliveringMsg is the packet type of a message packet from server to client
+	deliveringMsg pktType = 0x2
+	// echoMsg is the packet type of a echo reply
+	echoMsg pktType = 0x80
+	// serverAck is the packet type of a server ack for a message sent by the client
+	serverAck pktType = 0x81
+	// clientAck is the packet type of a client ack for a message delivered by the server
+	clientAck pktType = 0x82
+	// connEstablished is the packet type of a pkt send by the server when all MSGs have been delivered
+	connEstablished pktType = 0xd0
+	// msgHeaderLength is the length of a ThreemaMessageHeader
+	msgHeaderLength uint8 = 64
 )
 
 // ThreemaMessageHeader contains fields that every type of message needs
