@@ -34,7 +34,6 @@ type ReceivedMsg struct {
 // preflightCheck quickly tests the ID and returns an error if it's empty
 func (sc *SessionContext) preflightCheck() error {
 
-	fmt.Printf("len idstring: %d\n", len(sc.ID.String()))
 	check := false
 	for _, b := range sc.ID.ID {
 		if b != 0x0 {
@@ -47,7 +46,6 @@ func (sc *SessionContext) preflightCheck() error {
 	}
 
 	check = false
-	fmt.Printf("%#v\n", sc.ID.LSK)
 	for _, b := range sc.ID.LSK {
 		if b != 0x0 {
 			check = true
