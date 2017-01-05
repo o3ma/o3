@@ -1,11 +1,12 @@
 package o3
 
 import (
+	"crypto/rand"
 	"fmt"
 	"io/ioutil"
-	mrand "math/rand"
 	"time"
 
+	"encoding/binary"
 	"errors"
 )
 
@@ -52,20 +53,26 @@ type msgFlags struct {
 }
 
 // NewMsgID returns a randomly generated message ID (not cryptographically secure!)
-// TODO: Why mrand?
+// TODO: panic?
 func NewMsgID() uint64 {
-	mrand.Seed(int64(time.Now().Nanosecond()))
-	msgID := uint64(mrand.Int63())
+	msgIDbytes := make([]byte, 8)
+	_, err := rand.Read(msgIDbytes)
+	if err != nil {
+		panic(err)
+	}
+	msgID := binary.LittleEndian.Uint64(msgIDbytes)
+
 	return msgID
 }
 
 // NewGrpID returns a randomly generated group ID (not cryptographically secure!)
-// TODO: Why mrand?
+// TODO: panic?
 func NewGrpID() [8]byte {
-	mrand.Seed(int64(time.Now().Nanosecond()))
-
 	grpIDbuf := make([]byte, 8)
-	mrand.Read(grpIDbuf)
+	_, err := rand.Read(grpIDbuf)
+	if err != nil {
+		panic(err)
+	}
 
 	var grpID [8]byte
 	copy(grpID[:], grpIDbuf)
