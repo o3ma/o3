@@ -11,7 +11,7 @@ import "os"
 // ThreemaContact is the  core contact type, comprising of
 // an ID, a long-term public key, and an optional Name
 type ThreemaContact struct {
-	ID   [8]byte
+	ID   IDString
 	Name string
 	LPK  [32]byte
 }
