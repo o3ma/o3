@@ -92,7 +92,8 @@ func (sc *SessionContext) Run() (chan<- Message, <-chan ReceivedMsg, error) {
 	sc.receiveMsgChan = make(chan ReceivedMsg)
 
 	// receiveLoop calls sendLoop when ready
-
+	go sc.receiveLoop()
+	
 	return sc.sendMsgChan, sc.receiveMsgChan, nil
 }
 

@@ -318,6 +318,21 @@ type typingNotificationBody struct {
 
 //--------8<--------8<--------8<--------8<--------8<--------8<--------8<--------8<--------8<----
 
+type groupMessageHeader struct {
+	creatorID IDString
+	groupID   [8]byte
+}
+
+// GroupCreator returns the ID of the groups admin/creator as string
+func (gmh groupMessageHeader) GroupCreator() IDString {
+	return gmh.creatorID
+}
+
+// GroupID returns the ID of the group the message belongs to
+func (gmh groupMessageHeader) GroupID() [8]byte {
+	return gmh.groupID
+}
+
 // NewGroupTextMessages returns a slice of GroupMemberTextMessages ready to be encrypted
 func NewGroupTextMessages(sc *SessionContext, group Group, text string) ([]GroupTextMessage, error) {
 	gtm := make([]GroupTextMessage, len(group.Members))
@@ -347,9 +362,9 @@ type GroupTextMessage struct {
 	TextMessage
 }
 
-type groupMessageHeader struct {
-	creatorID IDString
-	groupID   [8]byte
+//Serialize returns a fully serialized byte slice of a GroupImageMessage
+func (gtm GroupTextMessage) Serialize() []byte {
+	return serializeGroupTextMsg(gtm).Bytes()
 }
 
 type groupImageMessageBody struct {
@@ -357,16 +372,6 @@ type groupImageMessageBody struct {
 	ServerID byte
 	Size     uint32
 	Key      [32]byte
-}
-
-// GroupCreator returns the ID of the groups admin/creator as string
-func (gmh groupMessageHeader) GroupCreator() IDString {
-	return gmh.creatorID
-}
-
-// GroupID returns the ID of the group the message belongs to
-func (gmh groupMessageHeader) GroupID() [8]byte {
-	return gmh.groupID
 }
 
 //GroupImageMessage represents a group image message as sent e2e encrypted to other threema users
