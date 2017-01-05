@@ -193,8 +193,6 @@ func NewThreemaID(id string, lsk [32]byte, contacts AddressBook) (ThreemaID, err
 
 	tid.Contacts = contacts
 
-	tid.Groups = make(map[IDString]map[[8]byte]Group)
-
 	return tid, nil
 }
 
