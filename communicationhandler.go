@@ -92,7 +92,6 @@ func (sc *SessionContext) Run() (chan<- Message, <-chan ReceivedMsg, error) {
 	sc.receiveMsgChan = make(chan ReceivedMsg)
 
 	// receiveLoop calls sendLoop when ready
-	go sc.receiveLoop()
 
 	return sc.sendMsgChan, sc.receiveMsgChan, nil
 }
@@ -226,21 +225,28 @@ func (sc *SessionContext) SendGroupTextMessage(group Group, text string, sendMsg
 }
 
 // CreateNewGroup Creates a new group and notifies all members
-func (sc *SessionContext) CreateNewGroup(group Group, sendMsgChan chan<- Message) (groupID [8]byte, err error) {
+func (sc *SessionContext) CreateNewGroup(name string, members []IDString, sendMsgChan chan<- Message) (Group, error) {
 
-	group.GroupID = NewGrpID()
-
-	sc.ChangeGroupMembers(group, sendMsgChan)
-	if err != nil {
-		return groupID, err
+	group := Group{
+		CreatorID: sc.ID.ID,
+		GroupID:   NewGrpID(),
+		Name:      name,
+		Members:   members,
 	}
 
-	sc.RenameGroup(group, sendMsgChan)
+	fmt.Println("changing group members")
+	err := sc.ChangeGroupMembers(group, sendMsgChan)
 	if err != nil {
-		return groupID, err
+		return group, err
 	}
 
-	return groupID, nil
+	fmt.Println("renaming group")
+	err = sc.RenameGroup(group, sendMsgChan)
+	if err != nil {
+		return group, err
+	}
+
+	return group, nil
 }
 
 // RenameGroup Sends a message with the new group name to all members
