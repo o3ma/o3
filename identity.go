@@ -54,7 +54,7 @@ type ThreemaID struct {
 	Nick     PubNick
 	LSK      [32]byte
 	Contacts AddressBook
-	Groups   map[IDString]map[[8]byte]Group // Groups[GroupCreator][GroupID]
+	Groups   GroupDirectory
 }
 
 // GetPubKey generates the PK on the fly, that's ok because it's rarely needed

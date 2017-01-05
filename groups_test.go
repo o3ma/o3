@@ -1,7 +1,6 @@
 package o3
 
 import (
-	"fmt"
 	"math/rand"
 	"reflect"
 	"testing"
@@ -70,7 +69,6 @@ func createGD() GroupDirectory {
 			deleted:   randBool(),
 		})
 	}
-	fmt.Printf("%#v\n", gd)
 	return gd
 }
 

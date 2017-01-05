@@ -4,6 +4,7 @@ import (
 	"encoding/csv"
 	"encoding/hex"
 	"fmt"
+	"io"
 	"os"
 	"strconv"
 	"strings"
@@ -25,17 +26,78 @@ type GroupDirectory struct {
 	groups []Group
 }
 
-func (gd GroupDirectory) slice() [][]string {
+// Add ads a group to the GroupDirectory
+func (gd *GroupDirectory) Add(group Group) {
+	for _, groupInDir := range gd.groups {
+		if (groupInDir.CreatorID == group.CreatorID) && (groupInDir.GroupID == group.GroupID) {
+			return
+		}
+	}
+	gd.groups = append(gd.groups, group)
+}
+
+// Get returns the group identified by the (creatorID, groupID) tuple
+// ok is false if no such group is in the directory
+func (gd *GroupDirectory) Get(creatorID IDString, groupID [8]byte) (Group, bool) {
+	for _, groupInDir := range gd.groups {
+		if (groupInDir.CreatorID == creatorID) && (groupInDir.GroupID == groupID) {
+			return groupInDir, true
+		}
+	}
+	return Group{}, false
+}
+
+// SaveToFile stores a GroupDirectory in a Threema-compatible CSV format as contained in a backup from the app
+func (gd *GroupDirectory) SaveToFile(filename string) error {
+	file, err := os.Create(filename)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	writeCSV(file, gd.slice())
+
+	return nil
+}
+
+// LoadFromFile will import a GroupDirectory from either a groups.csv file extracted
+// from a Threema app backup, or one created by SaveToFile()
+func (gd *GroupDirectory) LoadFromFile(filename string) error {
+	file, err := os.Open(filename)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	r := csv.NewReader(file)
+	lines, err := r.ReadAll()
+	if err != nil {
+		return err
+	}
+	return gd.importGroups(lines)
+}
+
+// encoding/csv doesn't do it for witing because we can't force it to put quotes around every field
+func writeCSV(w io.Writer, data [][]string) {
+	for _, row := range data {
+		sep := ""
+		for _, cell := range row {
+			fmt.Fprintf(w, `%s"%s"`, sep, strings.Replace(cell, `"`, `""`, -1))
+			sep = ","
+		}
+		fmt.Fprintf(w, "\n")
+	}
+}
+
+func (gd *GroupDirectory) slice() [][]string {
 	buf := make([][]string, len(gd.groups))
 
 	i := 0
 	for _, g := range gd.groups {
 		buf[i] = make([]string, 6)
-		fmt.Printf("%#v\n", g.GroupID)
-		buf[i][0] = fmt.Sprintf("'%.8x'", g.GroupID)
+		buf[i][0] = hex.EncodeToString(g.GroupID[:])
 		buf[i][1] = string(g.CreatorID[:])
 		buf[i][2] = g.Name
-		buf[i][3] = string(g.createdAt.Unix())
+		buf[i][3] = strconv.FormatInt(g.createdAt.Unix(), 10)
 		idstrs := make([]string, len(g.Members))
 		for y := range g.Members {
 			idstrs[y] = g.Members[y].String()
@@ -51,37 +113,10 @@ func (gd GroupDirectory) slice() [][]string {
 	return buf
 }
 
-// SaveToFile stores a GroupDirectory in a Threema-compatible CSV format as contained in a backup from the app
-func (gd GroupDirectory) SaveToFile(filename string) error {
-	file, err := os.Create(filename)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-	w := csv.NewWriter(file)
-	return w.WriteAll(gd.slice())
-}
-
-// LoadFromFile will import a GroupDirectory from either a groups.csv file extracted
-// from a Threema app backup, or one created by SaveToFile()
-func (gd GroupDirectory) LoadFromFile(filename string) error {
-	file, err := os.Open(filename)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-	r := csv.NewReader(file)
-	lines, err := r.ReadAll()
-	if err != nil {
-		return err
-	}
-	return gd.importGroups(lines)
-}
-
-func (gd GroupDirectory) importGroups(groups [][]string) error {
+func (gd *GroupDirectory) importGroups(groups [][]string) error {
 	gd.groups = make([]Group, len(groups))
 
-	for _, c := range groups {
+	for i, c := range groups {
 		g := Group{}
 		id, err := readGroupID(stripQuotes(c[0]))
 		if err != nil {
@@ -97,7 +132,7 @@ func (gd GroupDirectory) importGroups(groups [][]string) error {
 		g.Members = readMembers(stripQuotes(c[4]))
 		g.deleted = readDeleted(stripQuotes(c[5]))
 
-		gd.groups = append(gd.groups, g)
+		gd.groups[i] = g
 	}
 	return nil
 }
