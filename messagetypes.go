@@ -311,6 +311,29 @@ type typingNotificationBody struct {
 
 //--------8<--------8<--------8<--------8<--------8<--------8<--------8<--------8<--------8<----
 
+// NewGroupTextMessages returns a slice of GroupMemberTextMessages ready to be encrypted
+func NewGroupTextMessages(sc *SessionContext, group Group, text string) ([]GroupTextMessage, error) {
+	gtm := make([]GroupTextMessage, len(group.Members))
+	var tm TextMessage
+	var err error
+
+	for i, member := range group.Members {
+		tm, err = NewTextMessage(sc, member.String(), text)
+		if err != nil {
+			return []GroupTextMessage{}, err
+		}
+
+		gtm[i] = GroupTextMessage{
+			groupMessageHeader{
+				creatorID: group.CreatorID,
+				groupID:   group.GroupID},
+			tm}
+	}
+
+	return gtm, nil
+
+}
+
 //GroupTextMessage represents a group text message as sent e2e encrypted to other threema users
 type GroupTextMessage struct {
 	groupMessageHeader
@@ -330,8 +353,8 @@ type groupImageMessageBody struct {
 }
 
 // GroupCreator returns the ID of the groups admin/creator as string
-func (gmh groupMessageHeader) GroupCreator() string {
-	return gmh.creatorID.String()
+func (gmh groupMessageHeader) GroupCreator() IDString {
+	return gmh.creatorID
 }
 
 // GroupID returns the ID of the group the message belongs to

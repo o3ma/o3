@@ -54,6 +54,7 @@ type ThreemaID struct {
 	Nick     PubNick
 	LSK      [32]byte
 	Contacts AddressBook
+	Groups   map[IDString]map[[8]byte]Group // Groups[GroupCreator][GroupID]
 }
 
 // GetPubKey generates the PK on the fly, that's ok because it's rarely needed
@@ -191,6 +192,8 @@ func NewThreemaID(id string, lsk [32]byte, contacts AddressBook) (ThreemaID, err
 	tid.LSK = lsk
 
 	tid.Contacts = contacts
+
+	tid.Groups = make(map[IDString]map[[8]byte]Group)
 
 	return tid, nil
 }

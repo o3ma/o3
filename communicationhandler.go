@@ -211,6 +211,20 @@ func (sc *SessionContext) SendAudioMessage(recipient string, filename string, se
 	return nil
 }
 
+// SendGroupTextMessage Sends a text message to all members
+func (sc *SessionContext) SendGroupTextMessage(group Group, text string, sendMsgChan chan<- Message) (err error) {
+
+	tms, err := NewGroupTextMessages(sc, group, text)
+	if err != nil {
+		return err
+	}
+	for _, msg := range tms {
+		sendMsgChan <- msg
+	}
+
+	return nil
+}
+
 // CreateNewGroup Creates a new group and notifies all members
 func (sc *SessionContext) CreateNewGroup(group Group, sendMsgChan chan<- Message) (groupID [8]byte, err error) {
 
