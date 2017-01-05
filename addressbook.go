@@ -74,8 +74,8 @@ func (a *AddressBook) Import(contacts [][]string) error {
 	return nil
 }
 
-// ImportFrom imports an address book stored in a CSV file
-func (a *AddressBook) ImportFrom(filename string) error {
+// LoadFromFile imports an address book stored in a CSV file
+func (a *AddressBook) LoadFromFile(filename string) error {
 	file, err := os.Open(filename)
 	if err != nil {
 		return err
