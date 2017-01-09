@@ -335,21 +335,25 @@ func (gmh groupMessageHeader) GroupID() [8]byte {
 
 // NewGroupTextMessages returns a slice of GroupMemberTextMessages ready to be encrypted
 func NewGroupTextMessages(sc *SessionContext, group Group, text string) ([]GroupTextMessage, error) {
-	gtm := make([]GroupTextMessage, len(group.Members))
+	var gtm []GroupTextMessage
 	var tm TextMessage
 	var err error
 
-	for i, member := range group.Members {
+	for _, member := range group.Members {
+		if member == sc.ID.ID {
+			continue
+		}
+		fmt.Println(member)
 		tm, err = NewTextMessage(sc, member.String(), text)
 		if err != nil {
 			return []GroupTextMessage{}, err
 		}
 
-		gtm[i] = GroupTextMessage{
+		gtm = append(gtm, GroupTextMessage{
 			groupMessageHeader{
 				creatorID: group.CreatorID,
 				groupID:   group.GroupID},
-			tm}
+			tm})
 	}
 
 	return gtm, nil
@@ -405,10 +409,13 @@ func (im *GroupImageMessage) SetImageData(filename string) error {
 
 // NewGroupMemberLeftMessages returns a slice of GroupMemberLeftMessages ready to be encrypted
 func NewGroupMemberLeftMessages(sc *SessionContext, group Group) []GroupMemberLeftMessage {
-	gml := make([]GroupMemberLeftMessage, len(group.Members))
+	var gml []GroupMemberLeftMessage
 
 	for i := 0; i < len(group.Members); i++ {
-		gml[i] = GroupMemberLeftMessage{
+		if group.Members[i] == sc.ID.ID {
+			continue
+		}
+		gml = append(gml, GroupMemberLeftMessage{
 			groupMessageHeader{
 				creatorID: group.CreatorID,
 				groupID:   group.GroupID},
@@ -417,7 +424,7 @@ func NewGroupMemberLeftMessages(sc *SessionContext, group Group) []GroupMemberLe
 				recipient: group.Members[i],
 				id:        NewMsgID(),
 				time:      time.Now(),
-				pubNick:   sc.ID.Nick}}
+				pubNick:   sc.ID.Nick}})
 
 	}
 
@@ -499,10 +506,13 @@ func (gmh groupManageMessageHeader) GroupID() [8]byte {
 
 // NewGroupManageSetMembersMessages returns a slice of GroupManageSetMembersMessages ready to be encrypted
 func NewGroupManageSetMembersMessages(sc *SessionContext, group Group) []GroupManageSetMembersMessage {
-	gms := make([]GroupManageSetMembersMessage, len(group.Members))
+	var gms []GroupManageSetMembersMessage
 
 	for i := 0; i < len(group.Members); i++ {
-		gms[i] = GroupManageSetMembersMessage{
+		if group.Members[i] == sc.ID.ID {
+			continue
+		}
+		gms = append(gms, GroupManageSetMembersMessage{
 			groupManageMessageHeader{
 				groupID: group.GroupID},
 			messageHeader{
@@ -512,7 +522,7 @@ func NewGroupManageSetMembersMessages(sc *SessionContext, group Group) []GroupMa
 				time:      time.Now(),
 				pubNick:   sc.ID.Nick},
 			groupManageSetMembersMessageBody{
-				groupMembers: group.Members}}
+				groupMembers: group.Members}})
 
 	}
 
@@ -543,10 +553,13 @@ func (gmm GroupManageSetMembersMessage) Serialize() []byte {
 
 // NewGroupManageSetNameMessages returns a slice of GroupMenageSetNameMessages ready to be encrypted
 func NewGroupManageSetNameMessages(sc *SessionContext, group Group) []GroupManageSetNameMessage {
-	gms := make([]GroupManageSetNameMessage, len(group.Members))
+	var gms []GroupManageSetNameMessage
 
 	for i := 0; i < len(group.Members); i++ {
-		gms[i] = GroupManageSetNameMessage{
+		if group.Members[i] == sc.ID.ID {
+			continue
+		}
+		gms = append(gms, GroupManageSetNameMessage{
 			groupManageMessageHeader{
 				groupID: group.GroupID},
 			messageHeader{
@@ -556,7 +569,7 @@ func NewGroupManageSetNameMessages(sc *SessionContext, group Group) []GroupManag
 				time:      time.Now(),
 				pubNick:   sc.ID.Nick},
 			groupManageSetNameMessageBody{
-				groupName: group.Name}}
+				groupName: group.Name}})
 
 	}
 

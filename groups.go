@@ -26,11 +26,30 @@ type GroupDirectory struct {
 	groups []Group
 }
 
-// Add ads a group to the GroupDirectory
-func (gd *GroupDirectory) Add(group Group) {
+func isIDinGroup(group Group, id IDString) (int, bool) {
+	for i, member := range group.Members {
+		if member == id {
+			return i, true
+		}
+	}
+	return -1, false
+}
+
+// Upsert ads a group to the GroupDirectory or updates non zero values if it is already in the directory
+func (gd *GroupDirectory) Upsert(group Group) {
+	// make sure the group creator is in the member list
+	_, creatorInGroup := isIDinGroup(group, group.CreatorID)
+	if !creatorInGroup {
+		group.Members = append(group.Members, group.CreatorID)
+	}
 	for _, groupInDir := range gd.groups {
 		if (groupInDir.CreatorID == group.CreatorID) && (groupInDir.GroupID == group.GroupID) {
-			return
+			if group.Members != nil {
+				groupInDir.Members = group.Members
+			}
+			if group.Name != "" {
+				groupInDir.Name = group.Name
+			}
 		}
 	}
 	gd.groups = append(gd.groups, group)
