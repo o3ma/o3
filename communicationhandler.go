@@ -88,8 +88,9 @@ func (sc *SessionContext) Run() (chan<- Message, <-chan ReceivedMsg, error) {
 	sc.handleHandshakeAck(receiveHelper(sc.connection, 32))
 	//Info.Println("Handshake Completed")
 
-	sc.sendMsgChan = make(chan Message)
-	sc.receiveMsgChan = make(chan ReceivedMsg)
+	//TODO: find better way to handle large amounts of offline messages
+	sc.sendMsgChan = make(chan Message, 1000)
+	sc.receiveMsgChan = make(chan ReceivedMsg, 1000)
 
 	// receiveLoop calls sendLoop when ready
 	go sc.receiveLoop()
