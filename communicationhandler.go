@@ -166,18 +166,20 @@ func (sc *SessionContext) sendLoop() {
 
 // SendTextMessage sends a Text Message to the specified ID
 // Enqueued messages will be received, not acknowledged and discarded
-func (sc *SessionContext) SendTextMessage(recipient string, text string, sendMsgChan chan<- Message) error {
+func (sc *SessionContext) SendTextMessage(recipient string, text string, sendMsgChan chan<- Message) (error, TextMessage) {
+	var result error = nil
+	
 	// build a message
 	tm, err := NewTextMessage(sc, recipient, text)
 
 	// TODO: error handling
 	if err != nil {
-		return err
+		result = err
 	}
 
 	sendMsgChan <- tm
 
-	return nil
+	return result, tm
 }
 
 // SendImageMessage sends a Image Message to the specified ID
