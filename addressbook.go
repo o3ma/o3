@@ -9,11 +9,14 @@ import (
 import "os"
 
 // ThreemaContact is the  core contact type, comprising of
-// an ID, a long-term public key, and an optional Name
+// an ID, a long-term public key, and an optional Nickname, FirstName
+// and LastName
 type ThreemaContact struct {
-	ID   IDString
-	Name string
-	LPK  [32]byte
+	ID        IDString
+	PubNick   string
+	LPK       [32]byte
+	FirstName string
+	LastName  string
 }
 
 func (tc ThreemaContact) String() string {
@@ -29,10 +32,12 @@ func (a AddressBook) slice() [][]string {
 	buf := make([][]string, len(a.contacts))
 	i := 0
 	for _, contact := range a.contacts {
-		buf[i] = make([]string, 3)
+		buf[i] = make([]string, 5)
 		buf[i][0] = string(contact.ID[:])
-		buf[i][1] = contact.Name
+		buf[i][1] = contact.PubNick
 		buf[i][2] = hex.EncodeToString(contact.LPK[:])
+		buf[i][3] = contact.FirstName
+		buf[i][4] = contact.LastName
 		i++
 	}
 	return buf
@@ -44,8 +49,8 @@ func (a *AddressBook) initializeMap(c int) {
 
 // Import takes a two-dimensional slice of strings and imports it
 // field by field into the address book.
-// Fields have to be in the order "ID, Name, LPK" or the function will
-// return an error
+// Fields have to be in the order "ID, PubNick, LPK, FirstName, LastName" or the
+// function will return an error
 func (a *AddressBook) Import(contacts [][]string) error {
 	a.contacts = make(map[string]ThreemaContact, len(contacts))
 
@@ -56,7 +61,7 @@ func (a *AddressBook) Import(contacts [][]string) error {
 	for l, c := range contacts {
 		// log.Printf("%#v\n", c)
 		id := c[0]
-		contact := ThreemaContact{Name: c[1]}
+		contact := ThreemaContact{PubNick: c[1], FirstName: c[3], LastName: c[4]}
 		n := copy(contact.ID[:], id[:])
 		if n != 8 {
 			return fmt.Errorf("line %d: invalid ID length: %d", l, n)
