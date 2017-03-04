@@ -120,6 +120,8 @@ func (sc *SessionContext) handleClientServerMsg(buf *bytes.Buffer) interface{} {
 	case connEstablished:
 		// We have received all enqueued messages
 		return parseConnEstPkt(bytes.NewBuffer(plaintext))
+	case douplicateConnectionError:
+		return errDuplicateConn
 	default:
 		fmt.Printf("Unknown PktType: %.2x", plaintext)
 		return nil

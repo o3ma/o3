@@ -14,6 +14,8 @@ import (
 	"time"
 )
 
+var errDuplicateConn = errors.New("duplicate connection Error: this connection was ursurped by another client")
+
 func receiveHelper(reader io.Reader, n int) *bytes.Buffer {
 
 	buf := make([]byte, n)
@@ -104,10 +106,7 @@ func (sc *SessionContext) receiveLoop() {
 	for {
 		pktIntf, err := sc.receivePacket(sc.connection)
 		if err != nil {
-			if err == io.EOF {
-				//break recv
-				return
-			}
+			sc.ErrorChan <- err
 			sc.receiveMsgChan.In <- ReceivedMsg{
 				Msg: nil,
 				Err: err,
@@ -142,6 +141,18 @@ func (sc *SessionContext) receiveLoop() {
 }
 
 func (sc *SessionContext) sendLoop() {
+	defer func() {
+		if r := recover(); r != nil {
+			switch t := r.(type) {
+			case error:
+				sc.ErrorChan <- t
+			case string:
+				sc.ErrorChan <- errors.New(t)
+			default:
+				sc.ErrorChan <- fmt.Errorf("An unknown error has occured: %v", r)
+			}
+		}
+	}()
 	// Write a new echo pkt to the echPktChan every 3 minutes
 	echoPktChan := make(chan echoPacket)
 	go func() {
@@ -298,6 +309,9 @@ func (sc *SessionContext) receivePacket(reader io.Reader) (pkt interface{}, err 
 	}
 
 	pkt = sc.handleClientServerMsg(bytes.NewBuffer(buf))
+	if pkt == errDuplicateConn {
+		return nil, errDuplicateConn
+	}
 	return pkt, nil
 }
 

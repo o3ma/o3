@@ -24,6 +24,7 @@ type SessionContext struct {
 	receiveMsgChan *dynRecvChan
 	//sendMsgChan    chan Message
 	sendMsgChan *dynSendChan
+	ErrorChan   chan error
 	echoCounter uint64
 }
 
@@ -45,6 +46,7 @@ func NewSessionContext(ID ThreemaID) SessionContext {
 
 	sc.receiveMsgChan = newDynRecvChan()
 	sc.sendMsgChan = newDynSendChan()
+	sc.ErrorChan = make(chan error, 100)
 
 	sc.echoCounter = 0
 

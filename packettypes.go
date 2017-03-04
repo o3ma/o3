@@ -17,6 +17,8 @@ const (
 	clientAck pktType = 0x82
 	// connEstablished is the packet type of a pkt send by the server when all MSGs have been delivered
 	connEstablished pktType = 0xd0
+	// douplicateConnectionError is sent whenever the connection is ursurped by another client
+	douplicateConnectionError pktType = 0xE0
 	// msgHeaderLength is the length of a ThreemaMessageHeader
 	msgHeaderLength uint8 = 64
 )
