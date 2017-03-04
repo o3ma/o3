@@ -151,6 +151,20 @@ func serializeGroupManageSetMembersMessage(gmm GroupManageSetMembersMessage) *by
 	return buf
 }
 
+func serializeGroupManageSetImageMessage(gim GroupManageSetImageMessage) *bytes.Buffer {
+
+	buf := new(bytes.Buffer)
+
+	serializeMsgType(buf, GROUPSETIMAGEMESSAGE)
+	serializeGroupID(buf, gim.GroupID())
+	serializeBlobID(buf, gim.BlobID)
+	serializeUint32(buf, gim.Size)
+	serializeKey(buf, gim.Key)
+	serializePadding(buf)
+
+	return buf
+}
+
 func serializeAckPkt(ap ackPacket) *bytes.Buffer {
 
 	buf := new(bytes.Buffer)

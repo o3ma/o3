@@ -164,6 +164,11 @@ func (sc *SessionContext) handleMessagePacket(mp messagePacket) (Message, error)
 			groupManageMessageHeader:      parseGroupManageMessageHeader(buf),
 			messageHeader:                 newMsgHdrFromPkt(mp),
 			groupManageSetNameMessageBody: parseGroupManageSetNameMessage(buf)}
+	case GROUPSETIMAGEMESSAGE:
+		message = GroupManageSetImageMessage{
+			groupManageMessageHeader: parseGroupManageMessageHeader(buf),
+			messageHeader:            newMsgHdrFromPkt(mp),
+			groupImageMessageBody:    parseGroupImageMessage(buf)}
 	case GROUPSETMEMEBERSMESSAGE:
 		message = GroupManageSetMembersMessage{
 			groupManageMessageHeader:         parseGroupManageMessageHeader(buf),

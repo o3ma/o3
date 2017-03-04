@@ -26,6 +26,7 @@ const (
 	GROUPSETMEMEBERSMESSAGE MsgType = 0x4A //indicates a set group member message
 	GROUPSETNAMEMESSAGE     MsgType = 0x4B //indicates a set group name message
 	GROUPMEMBERLEFTMESSAGE  MsgType = 0x4C //indicates a group member left message
+	GROUPSETIMAGEMESSAGE    MsgType = 0x50 //indicates a group set image message
 	DELIVERYRECEIPT         MsgType = 0x80 //indicates a delivery receipt sent by the threema servers
 	TYPINGNOTIFICATION      MsgType = 0x90 //indicates a typing notifiaction message
 	//GROUPSETIMAGEMESSAGE msgType = 76
@@ -379,8 +380,12 @@ func (im GroupImageMessage) GetImageData(sc SessionContext) ([]byte, error) {
 	return downloadAndDecryptSym(im.BlobID, im.Key)
 }
 
-// SetImageData return the decrypted Image needs the recipients public key
+// SetImageData encrypts the given image symmetrically and adds it to the message
 func (im *GroupImageMessage) SetImageData(filename string) error {
+	return im.groupImageMessageBody.setImageData(filename)
+}
+
+func (im *groupImageMessageBody) setImageData(filename string) error {
 	plainImage, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return errors.New("could not load image")
@@ -510,6 +515,50 @@ func NewGroupManageSetMembersMessages(sc *SessionContext, group Group) []GroupMa
 
 type groupManageSetMembersMessageBody struct {
 	groupMembers []IDString
+}
+
+// GroupManageSetImageMessage represents the message sent e2e-encrypted by a group's creator to all members to set the group image
+type GroupManageSetImageMessage struct {
+	groupManageMessageHeader
+	messageHeader
+	groupImageMessageBody
+}
+
+// NewGroupManageSetImageMessages returns a slice of GroupManageSetImageMessages ready to be encrypted
+func NewGroupManageSetImageMessages(sc *SessionContext, group Group, filename string) []GroupManageSetImageMessage {
+	gms := make([]GroupManageSetImageMessage, len(group.Members))
+
+	for i := 0; i < len(group.Members); i++ {
+		gms[i] = GroupManageSetImageMessage{
+			groupManageMessageHeader{
+				groupID: group.GroupID},
+			messageHeader{}, //TODO:
+			groupImageMessageBody{},
+		}
+
+		err := gms[i].SetImageData(filename)
+		if err != nil {
+			//TODO: pretty sure this isn't a good idea
+			return nil
+		}
+	}
+
+	return gms
+}
+
+// GetImageData returns the decrypted Image
+func (im GroupManageSetImageMessage) GetImageData(sc SessionContext) ([]byte, error) {
+	return downloadAndDecryptSym(im.BlobID, im.Key)
+}
+
+// SetImageData encrypts the given image symmetrically and adds it to the message
+func (im *GroupManageSetImageMessage) SetImageData(filename string) error {
+	return im.groupImageMessageBody.setImageData(filename)
+}
+
+//Serialize returns a fully serialized byte slice of an ImageMessage
+func (im GroupManageSetImageMessage) Serialize() []byte {
+	return serializeGroupManageSetImageMessage(im).Bytes()
 }
 
 // GroupManageSetMembersMessage represents the message sent e2e encrypted by a group's creator to all members
