@@ -13,16 +13,18 @@ import (
 type SessionContext struct {
 	ID ThreemaID
 	//TODO it might make more sense in a lot of places to use pointers here
-	clientSPK      [32]byte //client short-term public key
-	clientSSK      [32]byte //client short-term secret key
-	serverSPK      [32]byte //server short-term public key
-	serverLPK      [32]byte //server long-term public key
-	clientNonce    nonce
-	serverNonce    nonce
-	connection     net.Conn
-	receiveMsgChan chan ReceivedMsg
-	sendMsgChan    chan Message
-	echoCounter    uint64
+	clientSPK   [32]byte //client short-term public key
+	clientSSK   [32]byte //client short-term secret key
+	serverSPK   [32]byte //server short-term public key
+	serverLPK   [32]byte //server long-term public key
+	clientNonce nonce
+	serverNonce nonce
+	connection  net.Conn
+	//receiveMsgChan chan ReceivedMsg
+	receiveMsgChan *dynRecvChan
+	//sendMsgChan    chan Message
+	sendMsgChan *dynSendChan
+	echoCounter uint64
 }
 
 // NewSessionContext returns a new SessionContext
@@ -40,6 +42,9 @@ func NewSessionContext(ID ThreemaID) SessionContext {
 	}
 	copy(sc.clientSPK[:], (*pk)[:])
 	copy(sc.clientSSK[:], (*sk)[:])
+
+	sc.receiveMsgChan = newDynRecvChan()
+	sc.sendMsgChan = newDynSendChan()
 
 	sc.echoCounter = 0
 

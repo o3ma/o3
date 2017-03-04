@@ -89,13 +89,13 @@ func (sc *SessionContext) Run() (chan<- Message, <-chan ReceivedMsg, error) {
 	//Info.Println("Handshake Completed")
 
 	//TODO: find better way to handle large amounts of offline messages
-	sc.sendMsgChan = make(chan Message, 1000)
-	sc.receiveMsgChan = make(chan ReceivedMsg, 1000)
+	//sc.sendMsgChan = make(chan Message, 1000)
+	//sc.receiveMsgChan = make(chan ReceivedMsg, 1000)
 
 	// receiveLoop calls sendLoop when ready
 	go sc.receiveLoop()
 
-	return sc.sendMsgChan, sc.receiveMsgChan, nil
+	return sc.sendMsgChan.In, sc.receiveMsgChan.Out, nil
 }
 
 func (sc *SessionContext) receiveLoop() {
@@ -108,8 +108,7 @@ func (sc *SessionContext) receiveLoop() {
 				//break recv
 				return
 			}
-			//Error.Printf("receivePacket failed: %s", err)
-			sc.receiveMsgChan <- ReceivedMsg{
+			sc.receiveMsgChan.In <- ReceivedMsg{
 				Msg: nil,
 				Err: err,
 			}
@@ -125,7 +124,7 @@ func (sc *SessionContext) receiveLoop() {
 			// Get the actual message
 			var rmsg ReceivedMsg
 			rmsg.Msg, rmsg.Err = sc.handleMessagePacket(pkt)
-			sc.receiveMsgChan <- rmsg
+			sc.receiveMsgChan.In <- rmsg
 		case ackPacket:
 			// ok cool. nothing to do.
 		case echoPacket:
@@ -156,7 +155,7 @@ func (sc *SessionContext) sendLoop() {
 
 	for {
 		select {
-		case msg := <-sc.sendMsgChan:
+		case msg := <-sc.sendMsgChan.Out:
 			sc.dispatchMessage(sc.connection, msg)
 		// Read from echo channel and dispatch (happens every 3 min)
 		case echoPkt := <-echoPktChan:
