@@ -346,6 +346,11 @@ type groupMessageHeader struct {
 	groupID   [8]byte
 }
 
+// Serialize : returns byte representation of serialized group text message
+func (gtm GroupTextMessage) Serialize() []byte {
+	return serializeGroupTextMsg(gtm).Bytes()
+}
+
 type groupImageMessageBody struct {
 	BlobID   [16]byte
 	ServerID byte
