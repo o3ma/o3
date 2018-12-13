@@ -72,7 +72,7 @@ func (tr ThreemaRest) CreateIdentity() (ThreemaID, error) {
 		Nick: NewPubNick(*finalResult.Identity),
 		LSK:  *privateKey}
 
-	if !tr.setFeatureLevel(newID, 4) {
+	if !tr.setFeatureLevel(newID, 1) {
 		return ThreemaID{}, errors.New("failed to set feature level")
 	}
 
@@ -80,6 +80,8 @@ func (tr ThreemaRest) CreateIdentity() (ThreemaID, error) {
 
 }
 
+// setFeatureLevel lets the threema servers know which features are supported by the client/id
+// 0 = {Text, Pictures, Videos}, 1 = {0, Audio, Groups}, 2 = {1, Ballots}, 3 = {2, Files}
 func (tr ThreemaRest) setFeatureLevel(thid ThreemaID, featurelevel int) (succes bool) {
 	featureLevelFloat := float64(featurelevel)
 
