@@ -221,7 +221,7 @@ func (im *ImageMessage) SetImageData(filename string, sc SessionContext) error {
 		return errors.New("could not load image")
 	}
 
-	im.Nonce, im.ServerID, im.Size, im.BlobID, err = encryptAndUploadAsym(sc, plainImage, im.recipient.String())
+	im.Nonce, im.ServerID, im.Size, im.BlobID, err = encryptAsymAndUpload(sc, plainImage, im.recipient.String())
 
 	return err
 }
@@ -288,7 +288,7 @@ func (am *AudioMessage) SetAudioData(filename string, sc SessionContext) error {
 	// TODO: Should we have a whole media lib as dependency just to set this to the proper value?
 	am.Duration = 0xFF
 
-	am.Key, am.ServerID, am.Size, am.BlobID, err = encryptAndUploadSym(plainAudio)
+	am.Key, am.ServerID, am.Size, am.BlobID, err = encryptSymAndUpload(plainAudio)
 
 	return err
 }
@@ -396,7 +396,7 @@ func (im *groupImageMessageBody) setImageData(filename string) error {
 		return errors.New("could not load image")
 	}
 
-	im.Key, im.ServerID, im.Size, im.BlobID, err = encryptAndUploadSym(plainImage)
+	im.Key, im.ServerID, im.Size, im.BlobID, err = encryptSymAndUpload(plainImage)
 
 	return err
 }

@@ -74,7 +74,7 @@ func uploadBlob(blob []byte) ([16]byte, error) {
 }
 
 // encryptAsymAndUpload encrypts a blob with recipients PK and the sc owners SK
-func encryptAndUploadAsym(sc SessionContext, plainImage []byte, recipientName string) (blobNonce nonce, ServerID byte, size uint32, blobID [16]byte, err error) {
+func encryptAsymAndUpload(sc SessionContext, plainImage []byte, recipientName string) (blobNonce nonce, ServerID byte, size uint32, blobID [16]byte, err error) {
 	// Get contact public key
 	threemaID := sc.ID
 	recipient, inContacts := threemaID.Contacts.Get(recipientName)
@@ -97,8 +97,8 @@ func encryptAndUploadAsym(sc SessionContext, plainImage []byte, recipientName st
 	return blobNonce, blobID[0], uint32(len(ciphertext)), blobID, nil
 }
 
-// encryptAsymAndUpload encrypts a blob with recipients PK and the sc owners SK
-func encryptAndUploadSym(plainImage []byte) (key [32]byte, ServerID byte, size uint32, blobID [16]byte, err error) {
+// encryptSymAndUpload encrypts a blob with recipients PK and the sc owners SK
+func encryptSymAndUpload(plainImage []byte) (key [32]byte, ServerID byte, size uint32, blobID [16]byte, err error) {
 	// fixed nonce of the form [000000....1]
 	nonce := [24]byte{}
 	nonce[23] = 1
