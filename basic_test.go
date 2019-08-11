@@ -35,8 +35,10 @@ func pingPong(t *testing.T,
 		t.Fatal(errors.Wrap(err, "context couldnt run"))
 	}
 
-	if err := ctx.SendTextMessage(remoteID, testMsg, sendChan); err != nil {
+	if msg, err := NewTextMessage(ctx, remoteID, testMsg); err != nil {
 		t.Fatal(errors.Wrapf(err, "%s: couldn't send her message", ctx.ID.String()))
+	} else {
+		sendChan <- &msg
 	}
 	t.Logf("%s send message", ctx.ID.String())
 	for msg := range recvChan {
@@ -47,9 +49,9 @@ func pingPong(t *testing.T,
 		}
 		switch thisMsg := msg.Msg.(type) {
 
-		case TextMessage:
-			if remoteID == thisMsg.Sender().String() {
-				if txt := thisMsg.Text(); txt != testMsg {
+		case *TextMessage:
+			if remoteID == thisMsg.Sender.String() {
+				if txt := thisMsg.String(); txt != testMsg {
 					t.Errorf("%s: got wrong message back. Wanted: %q got %q", ctx.ID.String(), testMsg, txt)
 				}
 				wg.Done()

@@ -11,12 +11,13 @@ import (
 	"encoding/binary"
 	"fmt"
 
-	"encoding/hex"
-
 	"golang.org/x/crypto/nacl/box"
 )
 
 func handlerPanicHandler(context string, i interface{}) error {
+	if err, ok := i.(error); ok {
+		return fmt.Errorf("%s: handling error occurred: %s", context, err.Error())
+	}
 	if _, ok := i.(string); ok {
 		return fmt.Errorf("%s: error occurred handling %s", context, i)
 	}
@@ -32,7 +33,8 @@ func (sc *SessionContext) handleServerHello(buf *bytes.Buffer) {
 			panic(handlerPanicHandler("server hello", r))
 		}
 	}()
-	sh := parseServerHello(buf)
+	sh := serverHelloPacket{}
+	sh.UnmarshalBinary(buf.Bytes())
 
 	sc.serverNonce.initialize(sh.NoncePrefix, 1)
 
@@ -42,13 +44,15 @@ func (sc *SessionContext) handleServerHello(buf *bytes.Buffer) {
 	}
 
 	rdr := bytes.NewBuffer(plaintext)
-	serverSPK, clientNP := parseServerHelloPayload(rdr)
+	var serverSPK [32]byte
+	var clientNP [16]byte
+	bufUnmarshal("server spk", rdr, &serverSPK)
+	bufUnmarshal("client np", rdr, &clientNP)
 
 	sc.serverSPK = serverSPK
 	if clientNP != sc.clientNonce.prefix() {
 		panic("client nonce check failed")
 	}
-
 }
 
 func (sc *SessionContext) handleHandshakeAck(buf *bytes.Buffer) {
@@ -73,7 +77,7 @@ func (sc *SessionContext) handleAckMsg(buf *bytes.Buffer) {}
 func (sc *SessionContext) handleClientServerMsg(buf *bytes.Buffer) interface{} {
 	defer func() {
 		if r := recover(); r != nil {
-			panic(handlerPanicHandler("handleDataMsg", r))
+			panic(handlerPanicHandler("handleClientServerMsg", r))
 		}
 	}()
 
@@ -91,7 +95,8 @@ func (sc *SessionContext) handleClientServerMsg(buf *bytes.Buffer) interface{} {
 	switch pt {
 	case deliveringMsg:
 		// It is an e2e message!
-		msgPkt := parseMsgPkt(bytes.NewBuffer(plaintext))
+		msgPkt := messagePacket{}
+		msgPkt.UnmarshalBinary(plaintext)
 		// Find the sender in our contacts, because we need their public key
 		sender, ok := sc.ID.Contacts.Get(msgPkt.Sender.String())
 		if !ok {
@@ -113,14 +118,20 @@ func (sc *SessionContext) handleClientServerMsg(buf *bytes.Buffer) interface{} {
 		return msgPkt
 	case serverAck:
 		// It is an ACK for a message we sent
-		return parseAckPkt(bytes.NewBuffer(plaintext))
+		pkg := ackPacket{}
+		pkg.UnmarshalBinary(plaintext)
+		return pkg
 	case echoMsg:
 		// It is an echo reply
-		return parseEchoPkt(bytes.NewBuffer(plaintext))
+		pkg := echoPacket{}
+		pkg.UnmarshalBinary(plaintext)
+		return pkg
 	case connEstablished:
 		// We have received all enqueued messages
-		return parseConnEstPkt(bytes.NewBuffer(plaintext))
-	case douplicateConnectionError:
+		pkg := connEstPacket{}
+		pkg.UnmarshalBinary(plaintext)
+		return pkg
+	case duplicateConnectionError:
 		return errDuplicateConn
 	default:
 		fmt.Printf("Unknown PktType: %.2x", plaintext)
@@ -133,75 +144,15 @@ func (sc *SessionContext) handleMessagePacket(mp messagePacket) (Message, error)
 	// DEBUG
 	//fmt.Print(hex.Dump(mp.Plaintext))
 
-	buf := bytes.NewBuffer(mp.Plaintext)
+	mt := mp.GetMessageType()
 
-	var message Message
-	mt := parseMessageType(buf)
-	switch mt {
-	case TEXTMESSAGE:
-		message = TextMessage{
-			messageHeader:   newMsgHdrFromPkt(mp),
-			textMessageBody: parseTextMessage(buf)}
-	case IMAGEMESSAGE:
-		message = ImageMessage{
-			messageHeader:    newMsgHdrFromPkt(mp),
-			imageMessageBody: parseImageMessage(buf)}
-	case AUDIOMESSAGE:
-		message = AudioMessage{
-			messageHeader:    newMsgHdrFromPkt(mp),
-			audioMessageBody: parseAudioMessage(buf)}
-	case GROUPTEXTMESSAGE:
-		message = GroupTextMessage{
-			groupMessageHeader: parseGroupMessageHeader(buf),
-			TextMessage: TextMessage{
-				messageHeader:   newMsgHdrFromPkt(mp),
-				textMessageBody: parseTextMessage(buf)}}
-	case GROUPIMAGEMESSAGE:
-		message = GroupImageMessage{
-			groupMessageHeader:    parseGroupMessageHeader(buf),
-			messageHeader:         newMsgHdrFromPkt(mp),
-			groupImageMessageBody: parseGroupImageMessage(buf)}
-	case GROUPSETNAMEMESSAGE:
-		message = GroupManageSetNameMessage{
-			groupManageMessageHeader:      parseGroupManageMessageHeader(buf),
-			messageHeader:                 newMsgHdrFromPkt(mp),
-			groupManageSetNameMessageBody: parseGroupManageSetNameMessage(buf)}
-	case GROUPSETIMAGEMESSAGE:
-		message = GroupManageSetImageMessage{
-			groupManageMessageHeader: parseGroupManageMessageHeader(buf),
-			messageHeader:            newMsgHdrFromPkt(mp),
-			groupImageMessageBody:    parseGroupImageMessage(buf)}
-	case GROUPSETMEMEBERSMESSAGE:
-		message = GroupManageSetMembersMessage{
-			groupManageMessageHeader:         parseGroupManageMessageHeader(buf),
-			messageHeader:                    newMsgHdrFromPkt(mp),
-			groupManageSetMembersMessageBody: parseGroupManageSetMembersMessage(buf)}
-	case GROUPMEMBERLEFTMESSAGE:
-		fmt.Println(hex.Dump(buf.Bytes()))
-		message = GroupMemberLeftMessage{
-			messageHeader:      newMsgHdrFromPkt(mp),
-			groupMessageHeader: parseGroupMessageHeader(buf)}
-	case DELIVERYRECEIPT:
-		message = DeliveryReceiptMessage{
-			messageHeader:              newMsgHdrFromPkt(mp),
-			deliveryReceiptMessageBody: parseDeliveryReceipt(buf)}
-	case TYPINGNOTIFICATION:
-		message = TypingNotificationMessage{
-			messageHeader:          newMsgHdrFromPkt(mp),
-			typingNotificationBody: parseTypingNotification(buf)}
-	default:
-		fmt.Printf("\n%2x\n", buf)
-		fmt.Printf("\n%s\n", buf)
-		return nil, fmt.Errorf("o3: unknown MessageType: %d", mt)
+	if msgGen, ok := messageUnmarshal[mt]; ok {
+		mh := mp.header()
+		msg, err := msgGen(&mh, mp.Plaintext)
+
+		return msg, err
 	}
-	return message, nil
-}
-
-func newMsgHdrFromPkt(mp messagePacket) messageHeader {
-	return messageHeader{
-		sender:    mp.Sender,
-		recipient: mp.Recipient,
-		id:        mp.ID,
-		time:      mp.Time,
-		pubNick:   mp.PubNick}
+	fmt.Printf("\n%2x\n", mp.Plaintext)
+	fmt.Printf("\n%s\n", mp.Plaintext)
+	return nil, fmt.Errorf("o3: unknown MessageType: %d", mt)
 }
