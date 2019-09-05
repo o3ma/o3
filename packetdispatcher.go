@@ -13,6 +13,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io"
+	"time"
 
 	"golang.org/x/crypto/nacl/box"
 )
@@ -152,7 +153,9 @@ func (sc *SessionContext) dispatchMessage(wr io.Writer, m Message) {
 		Nonce:      randNonce,
 		Ciphertext: msgCipherText,
 	}
-
+	if messagePkt.Time.IsZero() {
+		messagePkt.Time = time.Now()
+	}
 	serializedMsgPkt, _ := messagePkt.MarshalBinary()
 
 	sc.clientNonce.increaseCounter()

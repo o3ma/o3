@@ -3,6 +3,7 @@ package o3
 import (
 	"bytes"
 	"encoding"
+	"fmt"
 	"time"
 )
 
@@ -43,7 +44,7 @@ type messagePacket struct {
 	Plaintext  []byte
 }
 
-func (mp *messagePacket) header() MessageHeader {
+func (mp *messagePacket) Header() MessageHeader {
 	return MessageHeader{
 		Sender:    mp.Sender,
 		Recipient: mp.Recipient,
@@ -62,7 +63,7 @@ func (mp *messagePacket) GetMessageType() (mt MsgType) {
 func (mp *messagePacket) MarshalBinary() ([]byte, error) {
 	buf := new(bytes.Buffer)
 
-	bufMarshal("pkg-type", buf, uint32(mp.PktType))
+	bufMarshal("pkg-type", buf, mp.PktType)
 	bufMarshal("sender", buf, mp.Sender)
 	bufMarshal("recipient", buf, mp.Recipient)
 	bufMarshal("id", buf, mp.ID)
@@ -89,9 +90,6 @@ func (mp *messagePacket) UnmarshalBinary(data []byte) error {
 	bufUnmarshal("time", buf, &t)
 	mp.Time = time.Unix(int64(t), 0)
 
-	// handle int64 date - on wrong way
-	bufUnmarshal("fake-time", buf, &t)
-
 	// 1 byte for flags + 3 bytes unused
 	unused := make([]byte, 4)
 	bufUnmarshal("unused", buf, &unused)
@@ -101,6 +99,17 @@ func (mp *messagePacket) UnmarshalBinary(data []byte) error {
 	mp.Ciphertext = buf.Bytes()
 
 	return nil
+}
+func (mp *messagePacket) String() string {
+	return fmt.Sprintf(
+		`type: %v
+sender:%s
+recipient:%s
+public nick:%s`,
+		mp.PktType,
+		mp.Sender,
+		mp.Recipient,
+		mp.PubNick)
 }
 
 type ackPacket struct {

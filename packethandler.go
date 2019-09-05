@@ -112,6 +112,8 @@ func (sc *SessionContext) handleClientServerMsg(buf *bytes.Buffer) interface{} {
 		// Decrypt using our private and their public key
 		msgPkt.Plaintext, ok = box.Open(nil, msgPkt.Ciphertext, msgPkt.Nonce.bytes(), &sender.LPK, &sc.ID.LSK)
 		if !ok {
+			fmt.Println("===== format ====")
+			fmt.Println(msgPkt.String())
 			panic("Cannot decrypt e2e MSG!")
 		}
 
@@ -147,11 +149,14 @@ func (sc *SessionContext) handleMessagePacket(mp messagePacket) (Message, error)
 	mt := mp.GetMessageType()
 
 	if msgGen, ok := messageUnmarshal[mt]; ok {
-		mh := mp.header()
+		mh := mp.Header()
 		msg, err := msgGen(&mh, mp.Plaintext)
-
+		if err != nil {
+			fmt.Println(mp)
+		}
 		return msg, err
 	}
+	fmt.Println(mp.String())
 	fmt.Printf("\n%2x\n", mp.Plaintext)
 	fmt.Printf("\n%s\n", mp.Plaintext)
 	return nil, fmt.Errorf("o3: unknown MessageType: %d", mt)

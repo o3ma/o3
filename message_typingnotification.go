@@ -3,6 +3,7 @@ package o3
 import (
 	"bytes"
 	"errors"
+	"fmt"
 )
 
 // MsgType mock enum
@@ -18,14 +19,13 @@ type TypingNotificationMessage struct {
 func (msg TypingNotificationMessage) MarshalBinary() ([]byte, error) {
 
 	buf := new(bytes.Buffer)
-	bufMarshal("msg-type", buf, uint8(MessageTypeText))
+	bufMarshal("msg-type", buf, uint8(MessageTypeTypingNotification))
 	bufMarshal("body", buf, msg.OnOff)
 	bufMarshalPadding(buf)
 
 	return buf.Bytes(), nil
 }
 
-//TODO untested
 func (msg *TypingNotificationMessage) UnmarshalBinary(data []byte) error {
 	buf := bytes.NewBuffer(data)
 	var t MsgType
@@ -34,9 +34,15 @@ func (msg *TypingNotificationMessage) UnmarshalBinary(data []byte) error {
 		return errors.New("not correct type")
 	}
 	stripPadding(buf)
-	bufMarshal("typing?", buf, &msg.OnOff)
+	bufUnmarshal("typing?", buf, &msg.OnOff)
 
 	return nil
+}
+func (msg *TypingNotificationMessage) String() string {
+	if msg.OnOff != 0 {
+		return fmt.Sprintf("%s is composing", msg.Sender)
+	}
+	return fmt.Sprintf("%s is inactive", msg.Sender)
 }
 
 func init() {
