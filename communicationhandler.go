@@ -149,7 +149,7 @@ func (sc *SessionContext) sendLoop() {
 			case string:
 				sc.ErrorChan <- errors.New(t)
 			default:
-				sc.ErrorChan <- fmt.Errorf("An unknown error has occured: %v", r)
+				sc.ErrorChan <- fmt.Errorf("An unknown error has occurred: %v", r)
 			}
 		}
 	}()
