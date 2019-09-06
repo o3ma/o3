@@ -15,6 +15,12 @@ type GroupMessageHeader struct {
 
 const GroupMessageHeaderLenght = 16
 
+func (msg GroupMessageHeader) MarshalBinary() ([]byte, error) {
+	buf := new(bytes.Buffer)
+	bufMarshal("gh-creator id", buf, msg.CreatorID)
+	bufMarshal("gh-group id", buf, msg.GroupID)
+	return buf.Bytes(), nil
+}
 func (msg *GroupMessageHeader) UnmarshalBinary(data []byte) error {
 	buf := bytes.NewBuffer(data)
 	bufUnmarshal("read group creator", buf, &msg.CreatorID)
@@ -34,12 +40,16 @@ func (msg GroupTextMessage) MarshalBinary() ([]byte, error) {
 
 	buf := new(bytes.Buffer)
 	bufMarshal("msg-type", buf, uint8(MessageTypeGroupText))
-	data, err := msg.TextMessage.MarshalBinary()
+	data, err := msg.GroupMessageHeader.MarshalBinary()
+	bufMarshal("msg-group-header", buf, data)
 	if err != nil {
 		return nil, err
 	}
-	bufMarshal("text-msg", buf, data)
-
+	data, err = msg.TextMessage.MarshalBinary()
+	if err != nil {
+		return nil, err
+	}
+	bufMarshal("text-msg", buf, data[1:])
 	return buf.Bytes(), nil
 }
 
