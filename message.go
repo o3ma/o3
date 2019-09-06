@@ -19,6 +19,26 @@ type msgFlags struct {
 	GroupMessage                   bool
 }
 
+func (flags msgFlags) MarshalBinary() ([]byte, error) {
+	var flagsByte byte
+	if flags.PushMessage {
+		flagsByte |= (1 << 0)
+	}
+	if flags.NoQueuing {
+		flagsByte |= (1 << 1)
+	}
+	if flags.NoAckExpected {
+		flagsByte |= (1 << 2)
+	}
+	if flags.MessageHasAlreadyBeenDelivered {
+		flagsByte |= (1 << 3)
+	}
+	if flags.GroupMessage {
+		flagsByte |= (1 << 4)
+	}
+	return []byte{flagsByte}, nil
+}
+
 // NewMsgID returns a randomly generated message ID (not cryptographically secure!)
 // TODO: Why mrand?
 func NewMsgID() uint64 {

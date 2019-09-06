@@ -30,8 +30,8 @@ func (msg DeliveryReceiptMessage) MarshalBinary() ([]byte, error) {
 
 	buf := new(bytes.Buffer)
 	bufMarshal("msg-type", buf, uint8(MessageTypeDeliveryReceipt))
-	bufUnmarshal("message status", buf, msg.Status)
-	bufUnmarshal("message id", buf, msg.MessageID)
+	bufMarshal("message status", buf, msg.Status)
+	bufMarshal("message id", buf, msg.MessageID)
 	bufMarshalPadding(buf)
 
 	return buf.Bytes(), nil

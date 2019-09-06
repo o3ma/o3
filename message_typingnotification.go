@@ -19,7 +19,7 @@ type TypingNotificationMessage struct {
 func (msg TypingNotificationMessage) MarshalBinary() ([]byte, error) {
 
 	buf := new(bytes.Buffer)
-	bufMarshal("msg-type", buf, uint8(MessageTypeTypingNotification))
+	bufMarshal("msg-type", buf, MessageTypeTypingNotification)
 	bufMarshal("body", buf, msg.OnOff)
 	bufMarshalPadding(buf)
 

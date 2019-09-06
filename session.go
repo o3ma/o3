@@ -32,7 +32,8 @@ type SessionContext struct {
 func NewSessionContext(ID ThreemaID) SessionContext {
 	sc := SessionContext{
 		serverLPK: [32]byte{69, 11, 151, 87, 53, 39, 159, 222, 203, 51, 19, 100, 143, 95, 198, 238, 159, 244, 54, 14, 169, 42, 140, 23, 81, 198, 97, 228, 192, 216, 201, 9},
-		ID:        ID}
+		ID:        ID,
+	}
 
 	// New Session means new ephemeral keys and nonce
 	sc.clientNonce = newNonce()

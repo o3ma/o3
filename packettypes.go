@@ -68,7 +68,8 @@ func (mp *messagePacket) MarshalBinary() ([]byte, error) {
 	bufMarshal("recipient", buf, mp.Recipient)
 	bufMarshal("id", buf, mp.ID)
 	bufMarshal("time", buf, uint32(mp.Time.Unix()))
-	bufMarshal("flags", buf, mp.Flags)
+	flags, _ := mp.Flags.MarshalBinary()
+	bufMarshal("flags", buf, flags)
 	// The three following bytes are unused
 	bufMarshal("unused", buf, []byte{0x00, 0x00, 0x00})
 	bufMarshal("public nick", buf, mp.PubNick)

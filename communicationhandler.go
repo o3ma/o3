@@ -158,8 +158,10 @@ func (sc *SessionContext) sendLoop() {
 	go func() {
 		timeChan := time.Tick(3 * time.Minute)
 		for range timeChan {
-			ep := echoPacket{PktType: echoMsg,
-				Counter: sc.echoCounter}
+			ep := echoPacket{
+				PktType: echoMsg,
+				Counter: sc.echoCounter,
+			}
 			echoPktChan <- ep
 		}
 	}()

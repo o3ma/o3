@@ -29,9 +29,8 @@ func (tm TextMessage) String() string {
 
 //Serialize returns a fully serialized byte slice of a TextMessage
 func (tm TextMessage) MarshalBinary() ([]byte, error) {
-
 	buf := new(bytes.Buffer)
-	bufMarshal("msg-type", buf, uint8(MessageTypeText))
+	bufMarshal("msg-type", buf, MessageTypeText)
 	bufMarshal("body", buf, []byte(tm.Body))
 	bufMarshalPadding(buf)
 
