@@ -6,11 +6,15 @@ import (
 )
 
 // MsgType mock enum
-const MessageTypeText MsgType = 0x1
+const (
+	MessageTypeText      MsgType = 0x1
+	MessageTypeGroupText MsgType = 0x41
+)
 
 //TextMessage represents a text message as sent e2e encrypted to other threema users
 type TextMessage struct {
 	*MessageHeader
+	*GroupMessageHeader
 	Body string
 }
 
@@ -28,36 +32,58 @@ func (tm TextMessage) String() string {
 }
 
 //Serialize returns a fully serialized byte slice of a TextMessage
-func (tm TextMessage) MarshalBinary() ([]byte, error) {
+func (m TextMessage) MarshalBinary() ([]byte, error) {
 	buf := new(bytes.Buffer)
-	bufMarshal("msg-type", buf, MessageTypeText)
-	bufMarshal("body", buf, []byte(tm.Body))
+	if m.GroupMessageHeader == nil {
+		bufMarshal("msg-type", buf, MessageTypeText)
+	} else {
+		bufMarshal("msg-type", buf, uint8(MessageTypeGroupText))
+		data, err := m.GroupMessageHeader.MarshalBinary()
+		bufMarshal("msg-group-header", buf, data)
+		if err != nil {
+			return nil, err
+		}
+	}
+	bufMarshal("body", buf, []byte(m.Body))
 	bufMarshalPadding(buf)
 
 	return buf.Bytes(), nil
 }
 
-func (tm *TextMessage) UnmarshalBinary(data []byte) error {
+func (m *TextMessage) UnmarshalBinary(data []byte) error {
 	buf := bytes.NewBuffer(data)
 	var t MsgType
 	bufUnmarshal("read message type", buf, &t)
-	if t != MessageTypeText {
+	if t == MessageTypeGroupText {
+		m.GroupMessageHeader.UnmarshalBinary(data[1 : GroupMessageHeaderLenght+1])
+	} else if t != MessageTypeText {
 		return errors.New("not correct type")
 	}
 	stripPadding(buf)
 
-	tm.Body = string(buf.Bytes())
+	m.Body = string(buf.Bytes())
 	return nil
 }
 
 func init() {
 	messageUnmarshal[MessageTypeText] = func(mh *MessageHeader, data []byte) (Message, error) {
-		tm := &TextMessage{
+		m := &TextMessage{
 			MessageHeader: mh,
 		}
-		if err := tm.UnmarshalBinary(data); err != nil {
+		if err := m.UnmarshalBinary(data); err != nil {
 			return nil, err
 		}
-		return tm, nil
+		return m, nil
+	}
+	messageUnmarshal[MessageTypeGroupText] = func(mh *MessageHeader, data []byte) (Message, error) {
+		m := &TextMessage{
+			MessageHeader:      mh,
+			GroupMessageHeader: &GroupMessageHeader{},
+		}
+
+		if err := m.UnmarshalBinary(data); err != nil {
+			return nil, err
+		}
+		return m, nil
 	}
 }
