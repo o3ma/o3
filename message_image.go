@@ -9,10 +9,12 @@ import (
 
 // MsgType mock enum
 const MessageTypeImage MsgType = 0x2
+const MessageTypeGroupImage MsgType = 0x42
 
 //ImageMessage represents a image message as sent e2e encrypted to other threema users
 type ImageMessage struct {
 	*MessageHeader
+	*GroupMessageHeader
 	BlobID   [16]byte
 	ServerID byte
 	Size     uint32
@@ -47,7 +49,16 @@ func (m *ImageMessage) SetData(threemaID *ThreemaID, data []byte) (err error) {
 //Serialize returns a fully serialized byte slice of a TextMessage
 func (m ImageMessage) MarshalBinary() ([]byte, error) {
 	buf := new(bytes.Buffer)
-	bufMarshal("msg-type", buf, MessageTypeImage)
+	if m.GroupMessageHeader == nil {
+		bufMarshal("msg-type", buf, MessageTypeImage)
+	} else {
+		bufMarshal("msg-type", buf, uint8(MessageTypeGroupImage))
+		data, err := m.GroupMessageHeader.MarshalBinary()
+		bufMarshal("msg-group-header", buf, data)
+		if err != nil {
+			return nil, err
+		}
+	}
 	bufMarshal("blob-id", buf, m.BlobID)
 	bufMarshal("size", buf, m.Size)
 	bufMarshal("nonce", buf, m.Nonce.nonce)
@@ -60,7 +71,11 @@ func (m *ImageMessage) UnmarshalBinary(data []byte) error {
 	buf := bytes.NewBuffer(data)
 	var t MsgType
 	bufUnmarshal("read message type", buf, &t)
-	if t != MessageTypeImage {
+	if t == MessageTypeGroupText {
+		if err := m.GroupMessageHeader.UnmarshalBinary(data[1 : GroupMessageHeaderLenght+1]); err != nil {
+			return err
+		}
+	} else if t != MessageTypeImage {
 		return errors.New("not correct type")
 	}
 	stripPadding(buf)
@@ -78,6 +93,16 @@ func init() {
 	messageUnmarshal[MessageTypeImage] = func(mh *MessageHeader, data []byte) (Message, error) {
 		m := &ImageMessage{
 			MessageHeader: mh,
+		}
+		if err := m.UnmarshalBinary(data); err != nil {
+			return nil, err
+		}
+		return m, nil
+	}
+	messageUnmarshal[MessageTypeGroupImage] = func(mh *MessageHeader, data []byte) (Message, error) {
+		m := &ImageMessage{
+			MessageHeader:      mh,
+			GroupMessageHeader: &GroupMessageHeader{},
 		}
 		if err := m.UnmarshalBinary(data); err != nil {
 			return nil, err

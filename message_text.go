@@ -55,7 +55,9 @@ func (m *TextMessage) UnmarshalBinary(data []byte) error {
 	var t MsgType
 	bufUnmarshal("read message type", buf, &t)
 	if t == MessageTypeGroupText {
-		m.GroupMessageHeader.UnmarshalBinary(data[1 : GroupMessageHeaderLenght+1])
+		if err := m.GroupMessageHeader.UnmarshalBinary(data[1 : GroupMessageHeaderLenght+1]); err != nil {
+			return err
+		}
 	} else if t != MessageTypeText {
 		return errors.New("not correct type")
 	}
