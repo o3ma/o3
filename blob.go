@@ -74,9 +74,8 @@ func uploadBlob(blob []byte) ([16]byte, error) {
 }
 
 // encryptAsymAndUpload encrypts a blob with recipients PK and the sc owners SK
-func encryptAndUploadAsym(sc SessionContext, plainImage []byte, recipientName string) (blobNonce nonce, ServerID byte, size uint32, blobID [16]byte, err error) {
+func encryptAsymAndUpload(threemaID *ThreemaID, plainImage []byte, recipientName string) (blobNonce nonce, ServerID byte, size uint32, blobID [16]byte, err error) {
 	// Get contact public key
-	threemaID := sc.ID
 	recipient, inContacts := threemaID.Contacts.Get(recipientName)
 	if !inContacts {
 		var tr ThreemaRest
@@ -97,8 +96,8 @@ func encryptAndUploadAsym(sc SessionContext, plainImage []byte, recipientName st
 	return blobNonce, blobID[0], uint32(len(ciphertext)), blobID, nil
 }
 
-// encryptAsymAndUpload encrypts a blob with recipients PK and the sc owners SK
-func encryptAndUploadSym(plainImage []byte) (key [32]byte, ServerID byte, size uint32, blobID [16]byte, err error) {
+// encryptSymAndUpload encrypts a blob with recipients PK and the sc owners SK
+func encryptSymAndUpload(plainImage []byte) (key [32]byte, ServerID byte, size uint32, blobID [16]byte, err error) {
 	// fixed nonce of the form [000000....1]
 	nonce := [24]byte{}
 	nonce[23] = 1
@@ -157,14 +156,13 @@ func downloadBlob(blobID [16]byte) ([]byte, error) {
 	return ciphertext, nil
 }
 
-func downloadAndDecryptAsym(sc SessionContext, blobID [16]byte, senderName string, blobNonce nonce) (plaintext []byte, err error) {
+func downloadAndDecryptAsym(threemaID *ThreemaID, blobID [16]byte, senderName string, blobNonce nonce) (plaintext []byte, err error) {
 	ciphertext, err := downloadBlob(blobID)
 	if err != nil {
 		return []byte{}, err
 	}
 
 	var sender ThreemaContact
-	threemaID := sc.ID
 	sender, inContacts := threemaID.Contacts.Get(senderName)
 	if !inContacts {
 		var tr ThreemaRest

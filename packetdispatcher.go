@@ -13,6 +13,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io"
+	"time"
 
 	"golang.org/x/crypto/nacl/box"
 )
@@ -24,14 +25,18 @@ func dispatcherPanicHandler(context string, i interface{}) error {
 	return fmt.Errorf("%s: unknown dispatch error occurred: %#v", context, i)
 }
 
-func writeHelper(wr io.Writer, buf *bytes.Buffer) {
-	i, err := wr.Write(buf.Bytes())
-	if i != buf.Len() {
+func writeHelper(wr io.Writer, data []byte) {
+	i, err := wr.Write(data)
+	if i != len(data) {
 		panic("not enough bytes were transmitted")
 	}
 	if err != nil {
 		panic(err)
 	}
+}
+
+func writeBufferHelper(wr io.Writer, buf *bytes.Buffer) {
+	writeHelper(wr, buf.Bytes())
 }
 
 func (sc *SessionContext) dispatchClientHello(wr io.Writer) {
@@ -45,7 +50,7 @@ func (sc *SessionContext) dispatchClientHello(wr io.Writer) {
 	ch.ClientSPK = sc.clientSPK
 	ch.NoncePrefix = sc.clientNonce.prefix()
 
-	buf := serializeClientHelloPkt(ch)
+	buf, _ := ch.MarshalBinary()
 	writeHelper(wr, buf)
 }
 
@@ -73,17 +78,17 @@ func (sc *SessionContext) dispatchAuthMsg(wr io.Writer) {
 	}
 	copy(app.Ciphertext[:], ct[0:48])
 
-	appBuf := serializeAuthPktPayload(app)
+	appBuf, _ := app.MarshalBinary()
 
 	//create auth packet ciphertext
 	sc.clientNonce.setCounter(1)
-	apct := box.Seal(nil, appBuf.Bytes(), sc.clientNonce.bytes(), &sc.serverSPK, &sc.clientSSK)
+	apct := box.Seal(nil, appBuf, sc.clientNonce.bytes(), &sc.serverSPK, &sc.clientSSK)
 	if len(apct) != 144 {
 		panic("error encrypting payload")
 	}
 	copy(ap.Ciphertext[:], apct[0:144])
 
-	buf := serializeAuthPkt(ap)
+	buf, _ := ap.MarshalBinary()
 	writeHelper(wr, buf)
 }
 
@@ -91,72 +96,74 @@ func (sc *SessionContext) dispatchAckMsg(wr io.Writer, mp messagePacket) {
 	ackP := ackPacket{
 		PktType:  clientAck,
 		SenderID: mp.Sender,
-		MsgID:    mp.ID}
-	serializedAckPkt := serializeAckPkt(ackP)
+		MsgID:    mp.ID,
+	}
+	serializedAckPkt, _ := ackP.MarshalBinary()
 
 	sc.clientNonce.increaseCounter()
-	ackpCipherText := box.Seal(nil, serializedAckPkt.Bytes(), sc.clientNonce.bytes(), &sc.serverSPK, &sc.clientSSK)
+	ackpCipherText := box.Seal(nil, serializedAckPkt, sc.clientNonce.bytes(), &sc.serverSPK, &sc.clientSSK)
 
 	buf := new(bytes.Buffer)
 	binary.Write(buf, binary.LittleEndian, uint16(len(ackpCipherText)))
 	binary.Write(buf, binary.LittleEndian, ackpCipherText)
 
-	writeHelper(wr, buf)
+	writeBufferHelper(wr, buf)
 }
 
 func (sc *SessionContext) dispatchEchoMsg(wr io.Writer, oldEchoPacket echoPacket) {
-	ep := echoPacket{
-		Counter: oldEchoPacket.Counter + 1}
-	serializedEchoPkt := serializeEchoPkt(ep)
+	ep := echoPacket{Counter: oldEchoPacket.Counter + 1}
+	serializedEchoPkt, _ := ep.MarshalBinary()
 
 	sc.clientNonce.increaseCounter()
-	epCipherText := box.Seal(nil, serializedEchoPkt.Bytes(), sc.clientNonce.bytes(), &sc.serverSPK, &sc.clientSSK)
+	epCipherText := box.Seal(nil, serializedEchoPkt, sc.clientNonce.bytes(), &sc.serverSPK, &sc.clientSSK)
 
 	buf := new(bytes.Buffer)
 	binary.Write(buf, binary.LittleEndian, uint16(len(epCipherText)))
 	binary.Write(buf, binary.LittleEndian, epCipherText)
 
-	writeHelper(wr, buf)
+	writeBufferHelper(wr, buf)
 }
 
 func (sc *SessionContext) dispatchMessage(wr io.Writer, m Message) {
-	mh := m.header()
-
+	mh := m.Header()
 	randNonce := newRandomNonce()
 
-	recipient, ok := sc.ID.Contacts.Get(mh.recipient.String())
+	recipient, ok := sc.ID.Contacts.Get(mh.Recipient.String())
 	if !ok {
 		var tr ThreemaRest
 		var err error
 
-		recipient, err = tr.GetContactByID(mh.recipient)
+		recipient, err = tr.GetContactByID(mh.Recipient)
 		if err != nil {
 			panic("Recipient's PublicKey could not be found!")
 		}
 		sc.ID.Contacts.Add(recipient)
 	}
-	msgCipherText := box.Seal(nil, m.Serialize(), randNonce.bytes(), &recipient.LPK, &sc.ID.LSK)
+	data, _ := m.MarshalBinary()
+	msgCipherText := box.Seal(nil, data, randNonce.bytes(), &recipient.LPK, &sc.ID.LSK)
 
 	messagePkt := messagePacket{
+		Sender:     mh.Sender,
+		Recipient:  mh.Recipient,
+		ID:         mh.ID,
+		Time:       mh.Time,
+		PubNick:    mh.PubNick,
 		PktType:    sendingMsg,
-		Sender:     mh.sender,
-		Recipient:  mh.recipient,
-		ID:         mh.id,
-		Time:       mh.time,
 		Flags:      msgFlags{PushMessage: true},
-		PubNick:    mh.pubNick,
 		Nonce:      randNonce,
 		Ciphertext: msgCipherText,
 	}
-
-	serializedMsgPkt := serializeMsgPkt(messagePkt)
+	if messagePkt.Time.IsZero() {
+		messagePkt.Time = time.Now()
+	}
+	serializedMsgPkt, _ := messagePkt.MarshalBinary()
 
 	sc.clientNonce.increaseCounter()
-	serializedMsgPktCipherText := box.Seal(nil, serializedMsgPkt.Bytes(), sc.clientNonce.bytes(), &sc.serverSPK, &sc.clientSSK)
+	serializedMsgPktCipherText := box.Seal(nil, serializedMsgPkt, sc.clientNonce.bytes(), &sc.serverSPK, &sc.clientSSK)
 
 	buf := new(bytes.Buffer)
 	binary.Write(buf, binary.LittleEndian, uint16(len(serializedMsgPktCipherText)))
 	binary.Write(buf, binary.LittleEndian, serializedMsgPktCipherText)
 
-	writeHelper(wr, buf)
+	writeBufferHelper(wr, buf)
 }
