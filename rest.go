@@ -17,7 +17,7 @@ type ThreemaRest struct {
 }
 
 // CreateIdentity generates a new NaCl Keypair, registers it with the Three servers and returns the assigned ID
-func (tr ThreemaRest) CreateIdentity() (ThreemaID, error) {
+func (tr ThreemaRest) CreateIdentity(deviceUUID string, licenseKey string) (ThreemaID, error) {
 	// Get Keypair and nonce ready
 	publicKey, privateKey, err := box.GenerateKey(rand.Reader)
 	if err != nil {
@@ -55,9 +55,11 @@ func (tr ThreemaRest) CreateIdentity() (ThreemaID, error) {
 	tokenResponse := base64.StdEncoding.EncodeToString(box.Seal(nil, []byte(token), &nonce, &tokenPubKey, privateKey))
 
 	response := models_pkg.CreateStage2Request{
-		PublicKey: &pubkey,
-		Response:  &tokenResponse,
-		Token:     challenge.Token}
+		PublicKey:  &pubkey,
+		Response:   &tokenResponse,
+		Token:      challenge.Token,
+        DeviceId:   &deviceUUID,
+        LicenseKey: &licenseKey}
 
 	finalResult, err := tr.client.IdentityCreateStage2(&response)
 	if err != nil {
