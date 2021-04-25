@@ -174,11 +174,17 @@ func ParseIDBackupString(idstr string, password []byte) (ThreemaID, error) {
 // will always look different even if using the same password and ID because the salt is re-generated
 // with each backup.
 func (thid ThreemaID) SaveToFile(filename string, password []byte) error {
-	idstr, err := encryptID(thid.ID[:], thid.LSK[:], password)
+	idstr, err := thid.CreateIDBackupString(password)
 	if err != nil {
 		return err
 	}
 	return ioutil.WriteFile(filename, []byte(idstr+"\n"), 0600)
+}
+
+// CreateIDBackupString encodes the base32-encoded encrypted ID string contained to a threema backup.
+func (thid ThreemaID) CreateIDBackupString(password []byte) (string, error) {
+	idstr, err := encryptID(thid.ID[:], thid.LSK[:], password)
+	return idstr, err
 }
 
 // NewThreemaID creates a ThreemaID from a given id strnig and a 256-bit private key
