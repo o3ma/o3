@@ -16,6 +16,7 @@ type MsgType uint8
 // MsgType mock enum
 const (
 	TEXTMESSAGE             MsgType = 0x1  //indicates a text message
+	UNKNOWN_TYPE_1          MsgType = 0x1A //indicates a text message
 	IMAGEMESSAGE            MsgType = 0x2  //indicates a image message
 	AUDIOMESSAGE            MsgType = 0x14 //indicates a audio message
 	POLLMESSAGE             MsgType = 0x15 //indicates a poll message
