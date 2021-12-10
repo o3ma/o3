@@ -177,18 +177,18 @@ func (sc *SessionContext) sendLoop() {
 
 // SendTextMessage sends a Text Message to the specified ID
 // Enqueued messages will be received, not acknowledged and discarded
-func (sc *SessionContext) SendTextMessage(recipient string, text string, sendMsgChan chan<- Message) error {
+func (sc *SessionContext) SendTextMessage(recipient string, text string, sendMsgChan chan<- Message) (uint64, error) {
 	// build a message
 	tm, err := NewTextMessage(sc, recipient, text)
 
 	// TODO: error handling
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	sendMsgChan <- tm
 
-	return nil
+	return tm.ID(), nil
 }
 
 // SendImageMessage sends a Image Message to the specified ID
@@ -223,17 +223,17 @@ func (sc *SessionContext) SendAudioMessage(recipient string, filename string, se
 }
 
 // SendGroupTextMessage Sends a text message to all members
-func (sc *SessionContext) SendGroupTextMessage(group Group, text string, sendMsgChan chan<- Message) (err error) {
+func (sc *SessionContext) SendGroupTextMessage(group Group, text string, sendMsgChan chan<- Message) (tms []GroupTextMessage, err error) {
 
-	tms, err := NewGroupTextMessages(sc, group, text)
+	tms, err = NewGroupTextMessages(sc, group, text)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	for _, msg := range tms {
 		sendMsgChan <- msg
 	}
 
-	return nil
+	return tms, nil
 }
 
 // CreateNewGroup Creates a new group and notifies all members
