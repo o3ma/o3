@@ -56,7 +56,7 @@ func pingPong(t *testing.T,
 				continue
 			}
 		default:
-			t.Log("unahndled message Type: %T", msg)
+			t.Logf("unhandled message type: %T", msg)
 		}
 	}
 }
