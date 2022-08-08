@@ -3,3 +3,6 @@
 # o3
 
 Re-implementation of the [Threema](https://threema.ch) protocol. GoDoc [here](https://godoc.org/github.com/o3ma/o3), better documentation will follow.
+
+Requires a threema license from: https://shop.threema.ch/ (only for new
+identities)

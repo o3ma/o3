@@ -15,13 +15,16 @@ type MsgType uint8
 
 // MsgType mock enum
 const (
-	TEXTMESSAGE             MsgType = 0x1  //indicates a text message
-	IMAGEMESSAGE            MsgType = 0x2  //indicates a image message
+	TEXTMESSAGE             MsgType = 0x01 //indicates a text message
+	IMAGEMESSAGE            MsgType = 0x02 //indicates a image message
+	LOCATIONMESSAGE         MsgType = 0x10 //indicates a location message
 	AUDIOMESSAGE            MsgType = 0x14 //indicates a audio message
-	POLLMESSAGE             MsgType = 0x15 //indicates a poll message
-	LOCATIONMESSAGE         MsgType = 0x16 //indicates a location message
+	POLL_CREATE_MESSAGE     MsgType = 0x15 //indicates a poll message
+	POLL_VOTE_MESSAGE       MsgType = 0x16 //indicates a poll message
 	FILEMESSAGE             MsgType = 0x17 //indicates a file message
+	CONTACT_REQ_PHOTO       MsgType = 0x1A //indicates a text message
 	GROUPTEXTMESSAGE        MsgType = 0x41 //indicates a group text message
+	GROUPLOCATIONMESSAGE    MsgType = 0x42 //indicates a group image message
 	GROUPIMAGEMESSAGE       MsgType = 0x43 //indicates a group image message
 	GROUPSETMEMEBERSMESSAGE MsgType = 0x4A //indicates a set group member message
 	GROUPSETNAMEMESSAGE     MsgType = 0x4B //indicates a set group name message
